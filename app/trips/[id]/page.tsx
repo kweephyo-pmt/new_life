@@ -1,9 +1,12 @@
 import { Compass, Calendar, MapPin, Users, DollarSign } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ItineraryView } from "@/components/itinerary-view"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { RealtimeItinerary } from "@/components/realtime-itinerary"
 import { GenerateItineraryButton } from "@/components/generate-itinerary-button"
 import { ShareTripDialog } from "@/components/share-trip-dialog"
+import { BudgetOptimizer } from "@/components/budget-optimizer"
+import { OptimalTiming } from "@/components/optimal-timing"
 
 export default function TripDetailPage({ params }: { params: { id: string } }) {
   // Mock trip data
@@ -44,7 +47,13 @@ export default function TripDetailPage({ params }: { params: { id: string } }) {
               <Link href="/trips">My Trips</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/budget">Budget</Link>
+              <Link href="/discover">Discover</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/community">Community</Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/profile">Profile</Link>
             </Button>
           </nav>
         </div>
@@ -97,8 +106,25 @@ export default function TripDetailPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* Itinerary Section */}
-          <ItineraryView tripId={trip.id} />
+          <Tabs defaultValue="itinerary" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="itinerary">Real-Time Itinerary</TabsTrigger>
+              <TabsTrigger value="budget">Budget Optimizer</TabsTrigger>
+              <TabsTrigger value="timing">Optimal Timing</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="itinerary">
+              <RealtimeItinerary tripId={trip.id} />
+            </TabsContent>
+
+            <TabsContent value="budget">
+              <BudgetOptimizer tripId={trip.id} totalBudget={trip.budget} />
+            </TabsContent>
+
+            <TabsContent value="timing">
+              <OptimalTiming destination={trip.destination} startDate={trip.startDate} endDate={trip.endDate} />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
     </div>

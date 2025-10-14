@@ -23,9 +23,6 @@ export default function ProfilePage() {
               <Link href="/trips">My Trips</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/budget">Budget</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
               <Link href="/discover">Discover</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
@@ -43,7 +40,7 @@ export default function ProfilePage() {
             <CardContent className="pt-6">
               <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                 <Avatar className="w-24 h-24">
-                  <AvatarImage src="/placeholder.svg?height=96&width=96" />
+                  <AvatarImage src="/profile/user-avatar.jpg" />
                   <AvatarFallback className="text-2xl">JD</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 text-center md:text-left">

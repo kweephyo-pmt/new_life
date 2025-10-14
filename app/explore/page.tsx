@@ -18,9 +18,6 @@ export default function ExplorePage() {
               <Link href="/trips">My Trips</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/budget">Budget</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
               <Link href="/discover">Discover</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>

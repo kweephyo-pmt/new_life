@@ -19,9 +19,6 @@ export default function TripsPage() {
               <Link href="/explore">Explore</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/budget">Budget</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
               <Link href="/discover">Discover</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>

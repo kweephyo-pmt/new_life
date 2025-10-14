@@ -23,9 +23,6 @@ export default function DiscoverPage() {
               <Link href="/trips">My Trips</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/budget">Budget</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
               <Link href="/community">Community</Link>
             </Button>
             <Button variant="outline" size="sm" asChild>

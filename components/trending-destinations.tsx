@@ -18,35 +18,35 @@ export function TrendingDestinations() {
       name: "Tokyo",
       country: "Japan",
       posts: 12453,
-      imageUrl: "Tokyo Japan cityscape",
+      imageUrl: "/destinations/tokyo-city.jpg",
     },
     {
       id: "2",
       name: "Bali",
       country: "Indonesia",
       posts: 9876,
-      imageUrl: "Bali Indonesia beach",
+      imageUrl: "/destinations/bali-beach.jpg",
     },
     {
       id: "3",
       name: "Paris",
       country: "France",
       posts: 8234,
-      imageUrl: "Paris France Eiffel Tower",
+      imageUrl: "/destinations/paris-eiffel.jpg",
     },
     {
       id: "4",
       name: "Santorini",
       country: "Greece",
       posts: 7654,
-      imageUrl: "Santorini Greece sunset",
+      imageUrl: "/destinations/santorini-sunset.jpg",
     },
     {
       id: "5",
       name: "Dubai",
       country: "UAE",
       posts: 6543,
-      imageUrl: "Dubai UAE skyline",
+      imageUrl: "/destinations/dubai-skyline.jpg",
     },
   ]
 
@@ -67,7 +67,7 @@ export function TrendingDestinations() {
               <div className="relative">
                 <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden">
                   <img
-                    src={`/.jpg?height=50&width=50&query=${encodeURIComponent(destination.imageUrl)}`}
+                    src={destination.imageUrl || "/placeholder.svg"}
                     alt={destination.name}
                     className="w-full h-full object-cover"
                   />

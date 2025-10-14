@@ -30,7 +30,7 @@ export function DestinationMap() {
       lng: 139.7454,
       rating: 4.5,
       description: "Iconic landmark offering panoramic views of Tokyo",
-      imageUrl: "Tokyo Tower landmark",
+      imageUrl: "/map-locations/tokyo-tower.jpg",
     },
     {
       id: "2",
@@ -40,7 +40,7 @@ export function DestinationMap() {
       lng: 139.7967,
       rating: 4.7,
       description: "Ancient Buddhist temple in Asakusa",
-      imageUrl: "Senso-ji Temple Tokyo",
+      imageUrl: "/map-locations/sensoji-temple.jpg",
     },
     {
       id: "3",
@@ -50,7 +50,7 @@ export function DestinationMap() {
       lng: 139.7004,
       rating: 4.6,
       description: "World's busiest pedestrian crossing",
-      imageUrl: "Shibuya Crossing Tokyo",
+      imageUrl: "/map-locations/shibuya-crossing.jpg",
     },
     {
       id: "4",
@@ -60,7 +60,7 @@ export function DestinationMap() {
       lng: 139.6993,
       rating: 4.8,
       description: "Serene Shinto shrine in a forested area",
-      imageUrl: "Meiji Shrine Tokyo",
+      imageUrl: "/map-locations/meiji-shrine.jpg",
     },
   ]
 
@@ -132,7 +132,7 @@ export function DestinationMap() {
             <div>
               <div className="h-48 bg-muted rounded-lg overflow-hidden mb-4">
                 <img
-                  src={`/.jpg?height=200&width=300&query=${encodeURIComponent(selectedLocation.imageUrl)}`}
+                  src={selectedLocation.imageUrl || "/placeholder.svg"}
                   alt={selectedLocation.name}
                   className="w-full h-full object-cover"
                 />
