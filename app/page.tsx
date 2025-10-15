@@ -10,7 +10,7 @@ export default function HomePage() {
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Compass className="w-8 h-8 text-primary" />
+            <img src='NewLifeLOGO.png' alt='logo' className="w-15 h-15"/>
             <span className="text-2xl font-bold text-foreground">New Life</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
@@ -125,7 +125,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <Compass className="w-6 h-6 text-primary" />
+              <img src='NewLifeLOGO.png' alt='logo' className="w-15 h-15"/>
               <span className="font-bold text-foreground">New Life</span>
             </div>
             <p className="text-sm text-muted-foreground">© 2025 New Life. Your AI travel companion.</p>
