@@ -22,6 +22,13 @@ Continue building your app on:
 
 **[https://v0.app/chat/projects/zlNnPnBwj2b](https://v0.app/chat/projects/zlNnPnBwj2b)**
 
+## How It Works
+
+1. Create and modify your project using [v0.app](https://v0.app)
+2. Deploy your chats from the v0 interface
+3. Changes are automatically pushed to this repository
+4. Vercel deploys the latest version from this repository
+
 ---
 
 # 🧭 Sprint 2 Test Plan – New Life AI Travel Companion
@@ -116,10 +123,3 @@ _As a traveler, I want to save or share my itinerary and provide feedback for im
 | FS-001 | (Happy Path) Save trip | Click **Save Trip** after generation. | Trip successfully stored in user profile. |
 | FS-002 | (Happy Path) Share itinerary | Click **Share Link**. | Unique shareable link generated. |
 | FS-003 | (Sad Path) Save failure (offline) | Disable internet and click **Save**. | Error “Connection lost” displayed; no data saved. |
-
-## How It Works
-
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
