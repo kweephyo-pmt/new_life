@@ -8,27 +8,58 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2 } from "lucide-react"
+import { Loader2, Upload, X } from "lucide-react"
+import { createTrip } from "@/lib/trips-storage"
+import { useRouter } from "next/navigation"
 
 export function CreateTripDialog({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [imagePreview, setImagePreview] = useState<string>("")
   const [formData, setFormData] = useState({
     name: "",
     destination: "",
     startDate: "",
     endDate: "",
     travelers: "1",
+    budget: "",
     preferences: "",
   })
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const removeImage = () => {
+    setImagePreview("")
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      const newTrip = createTrip({
+        name: formData.name,
+        destination: formData.destination,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        travelers: Number.parseInt(formData.travelers),
+        budget: Number.parseFloat(formData.budget),
+        preferences: formData.preferences,
+        imageUrl: imagePreview || "/trips/tokyo-skyline.jpg",
+      })
+
+      console.log("[v0] Trip created:", newTrip)
+
       setOpen(false)
       setFormData({
         name: "",
@@ -36,10 +67,14 @@ export function CreateTripDialog({ children }: { children: React.ReactNode }) {
         startDate: "",
         endDate: "",
         travelers: "1",
+        budget: "",
         preferences: "",
       })
+      setImagePreview("")
+
+      router.refresh()
     } catch (error) {
-      console.error("Error creating trip:", error)
+      console.error("[v0] Error creating trip:", error)
     } finally {
       setLoading(false)
     }
@@ -54,6 +89,36 @@ export function CreateTripDialog({ children }: { children: React.ReactNode }) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+          <div className="space-y-2">
+            <Label htmlFor="trip-photo">Trip Photo (Optional)</Label>
+            {imagePreview ? (
+              <div className="relative">
+                <img
+                  src={imagePreview || "/placeholder.svg"}
+                  alt="Trip preview"
+                  className="w-full h-48 object-cover rounded-lg border border-border"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2"
+                  onClick={removeImage}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors">
+                <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                <Label htmlFor="trip-photo" className="cursor-pointer">
+                  <span className="text-sm text-muted-foreground">Click to upload or drag and drop</span>
+                  <Input id="trip-photo" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                </Label>
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="trip-name">Trip Name</Label>
             <Input
@@ -99,16 +164,31 @@ export function CreateTripDialog({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="travelers">Number of Travelers</Label>
-            <Input
-              id="travelers"
-              type="number"
-              min="1"
-              value={formData.travelers}
-              onChange={(e) => setFormData({ ...formData, travelers: e.target.value })}
-              required
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="travelers">Number of Travelers</Label>
+              <Input
+                id="travelers"
+                type="number"
+                min="1"
+                value={formData.travelers}
+                onChange={(e) => setFormData({ ...formData, travelers: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="budget">Budget (USD)</Label>
+              <Input
+                id="budget"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="e.g., 5000"
+                value={formData.budget}
+                onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                required
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
