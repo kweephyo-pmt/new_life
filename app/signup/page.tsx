@@ -15,6 +15,7 @@ export default function SignupPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState('')
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
@@ -22,7 +23,7 @@ export default function SignupPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      await signUp(email, password, name)
+      await signUp(email, password, name, username)
       toast.success('Account created successfully!')
       router.push('/trips')
     } catch (error: any) {
@@ -140,6 +141,24 @@ export default function SignupPage() {
                     placeholder="John Doe"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    required
+                    className="pl-10 h-12"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="username" className="text-sm font-medium">
+                  Username
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="johndoe"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                     required
                     className="pl-10 h-12"
                   />

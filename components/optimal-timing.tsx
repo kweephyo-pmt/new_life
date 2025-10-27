@@ -1,7 +1,10 @@
 "use client"
 
-import { Card } from "@/components/ui/card"
-import { Sun, DollarSign, Users, Calendar, TrendingDown } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Sun, DollarSign, Users, Calendar, TrendingDown, CloudRain, TrendingUp, Loader2 } from "lucide-react"
+import { getTravelData } from "@/lib/travel-data"
 
 interface OptimalTimingProps {
   destination: string
@@ -10,26 +13,40 @@ interface OptimalTimingProps {
 }
 
 export function OptimalTiming({ destination, startDate, endDate }: OptimalTimingProps) {
-  // TODO: Integrate with real weather and pricing APIs
-  // For now, showing placeholder data based on the actual trip dates
-  const timing = {
-    weather: {
-      score: 85,
-      description: `Weather analysis for ${destination}`,
-      temp: "Varies by season",
-      rainfall: "Check forecast closer to date",
-    },
-    pricing: {
-      score: 72,
-      description: "Pricing analysis in progress",
-      flightTrend: "stable",
-      hotelTrend: "increasing",
-    },
-    crowds: {
-      score: 68,
-      description: "Tourist activity analysis",
-      level: "Medium",
-    },
+  const [timing, setTiming] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadTravelData() {
+      setLoading(true)
+      try {
+        const data = await getTravelData(destination, startDate, endDate)
+        setTiming(data)
+      } catch (error) {
+        console.error('Error loading travel data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadTravelData()
+  }, [destination, startDate, endDate])
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Optimal Timing Analysis</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (!timing) {
+    return null
   }
 
   const betterDates = [

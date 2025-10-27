@@ -18,25 +18,40 @@ import { updateProfile } from "firebase/auth"
 import { MainNav } from "@/components/main-nav"
 import { getTrips, type Trip } from "@/lib/trips-storage"
 import { getTripsWithCurrentStatus } from "@/lib/trip-utils"
+import { getUserProfile } from "@/lib/user-profile-storage"
+import { EditProfileDialog } from "@/components/edit-profile-dialog"
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth()
+  const { user, logout, loading } = useAuth()
   const router = useRouter()
-  const [isEditing, setIsEditing] = useState(false)
-  const [displayName, setDisplayName] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [username, setUsername] = useState('')
+  const [bio, setBio] = useState('')
+  const [location, setLocation] = useState('')
+  const [website, setWebsite] = useState('')
   const [trips, setTrips] = useState<Trip[]>([])
   const [allTrips, setAllTrips] = useState<Trip[]>([])
   const [tripsLoading, setTripsLoading] = useState(true)
+  const [profileKey, setProfileKey] = useState(0)
 
   useEffect(() => {
-    if (!user) {
+    if (!loading && !user) {
       router.push('/login')
-    } else {
-      setDisplayName(user.displayName || '')
+    } else if (user) {
       loadTrips()
+      loadUserProfile()
     }
-  }, [user, router])
+  }, [user, loading, router, profileKey])
+
+  const loadUserProfile = async () => {
+    if (!user) return
+    const profile = await getUserProfile(user.uid)
+    if (profile) {
+      setUsername(profile.username || '')
+      setBio(profile.bio || '')
+      setLocation(profile.location || '')
+      setWebsite(profile.website || '')
+    }
+  }
 
   const loadTrips = async () => {
     if (!user) return
@@ -82,23 +97,11 @@ export default function ProfilePage() {
     }
   }
 
-  const handleUpdateProfile = async () => {
-    if (!user) return
-    setLoading(true)
-    try {
-      await updateProfile(user, {
-        displayName: displayName,
-      })
-      toast.success('Profile updated successfully!')
-      setIsEditing(false)
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to update profile')
-    } finally {
-      setLoading(false)
-    }
+  const handleProfileUpdated = () => {
+    setProfileKey(prev => prev + 1)
   }
 
-  if (!user) {
+  if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -136,32 +139,42 @@ export default function ProfilePage() {
           <Card className="mb-8">
             <CardContent className="pt-6">
               <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-                <Avatar className="w-24 h-24">
-                  <AvatarImage src={user.photoURL || undefined} />
-                  <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
+                <Avatar className="w-24 h-24 ring-4 ring-background shadow-lg">
+                  <AvatarImage src={user.photoURL || undefined} className="object-cover" />
+                  <AvatarFallback className="text-2xl bg-primary text-primary-foreground">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 text-center md:text-left">
                   <h1 className="text-3xl font-bold text-foreground mb-2">{user.displayName || 'User'}</h1>
-                  <div className="flex items-center gap-2 justify-center md:justify-start text-muted-foreground mb-4">
+                  {bio && (
+                    <p className="text-muted-foreground mb-3">{bio}</p>
+                  )}
+                  <div className="flex items-center gap-2 justify-center md:justify-start text-muted-foreground mb-2">
                     <Mail className="w-4 h-4" />
                     <span>{user.email}</span>
                   </div>
+                  {location && (
+                    <div className="flex items-center gap-2 justify-center md:justify-start text-muted-foreground mb-2">
+                      <MapPin className="w-4 h-4" />
+                      <span>{location}</span>
+                    </div>
+                  )}
                   <div className="flex flex-wrap gap-4 justify-center md:justify-start text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
                       <span>Member since {memberSince}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      <span>{user.emailVerified ? 'Verified' : 'Not verified'}</span>
-                    </div>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setIsEditing(!isEditing)}>
-                    <Edit2 className="w-4 h-4 mr-2" />
-                    Edit Profile
-                  </Button>
+                  <EditProfileDialog
+                    user={user}
+                    initialDisplayName={user.displayName || ''}
+                    initialUsername={username}
+                    initialBio={bio}
+                    initialLocation={location}
+                    initialWebsite={website}
+                    onProfileUpdated={handleProfileUpdated}
+                  />
                   <Button variant="outline" size="sm" onClick={handleLogout}>
                     <LogOut className="w-4 h-4 mr-2" />
                     Logout
@@ -256,64 +269,64 @@ export default function ProfilePage() {
             </TabsContent>
 
             <TabsContent value="settings" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Account Settings</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={user.email || ''}
-                      disabled
-                      className="bg-muted"
-                    />
-                    <p className="text-xs text-muted-foreground">Email cannot be changed</p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="displayName">Display Name</Label>
-                    <Input
-                      id="displayName"
-                      type="text"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      disabled={!isEditing}
-                      placeholder="Enter your name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Account Provider</Label>
-                    <Input
-                      value={user.providerData[0]?.providerId === 'google.com' ? 'Google' : 'Email/Password'}
-                      disabled
-                      className="bg-muted"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Account Status</Label>
-                    <Input
-                      value={user.emailVerified ? 'Verified' : 'Not Verified'}
-                      disabled
-                      className="bg-muted"
-                    />
-                  </div>
-                  {isEditing && (
-                    <div className="flex gap-2">
-                      <Button onClick={handleUpdateProfile} disabled={loading}>
-                        {loading ? 'Saving...' : 'Save Changes'}
-                      </Button>
-                      <Button variant="outline" onClick={() => {
-                        setIsEditing(false)
-                        setDisplayName(user.displayName || '')
-                      }}>
-                        Cancel
-                      </Button>
+              <div className="grid gap-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Account Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-muted-foreground">Email</Label>
+                        <p className="text-foreground font-medium">{user.email}</p>
+                      </div>
+                      <div>
+                        <Label className="text-muted-foreground">Display Name</Label>
+                        <p className="text-foreground font-medium">{user.displayName || 'Not set'}</p>
+                      </div>
+                      <div className="col-span-2">
+                        <Label className="text-muted-foreground">Account Provider</Label>
+                        <p className="text-foreground font-medium">
+                          {user.providerData[0]?.providerId === 'google.com' ? 'Google' : 'Email/Password'}
+                        </p>
+                      </div>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Profile Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-muted-foreground">Bio</Label>
+                        <p className="text-foreground">{bio || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <Label className="text-muted-foreground">Location</Label>
+                        <p className="text-foreground">{location || 'Not set'}</p>
+                      </div>
+                      <div className="col-span-2">
+                        <Label className="text-muted-foreground">Website</Label>
+                        <p className="text-foreground">{website || 'Not set'}</p>
+                      </div>
+                    </div>
+                    <div className="pt-4">
+                      <EditProfileDialog
+                        user={user}
+                        initialDisplayName={user.displayName || ''}
+                        initialUsername={username}
+                        initialBio={bio}
+                        initialLocation={location}
+                        initialWebsite={website}
+                        onProfileUpdated={handleProfileUpdated}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </div>

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Upload, X } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { createTrip, updateTrip } from "@/lib/trips-storage"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
@@ -27,7 +27,6 @@ export function CreateTripDialog({ children, initialData }: CreateTripDialogProp
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [imagePreview, setImagePreview] = useState<string>("")
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     destination: initialData?.destination || "",
@@ -49,21 +48,6 @@ export function CreateTripDialog({ children, initialData }: CreateTripDialogProp
     }
   }, [open, initialData])
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
-  const removeImage = () => {
-    setImagePreview("")
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) {
@@ -84,7 +68,7 @@ export function CreateTripDialog({ children, initialData }: CreateTripDialogProp
         travelers: Number.parseInt(formData.travelers),
         budget: Number.parseFloat(formData.budget),
         preferences: formData.preferences,
-        imageUrl: imagePreview || "",
+        imageUrl: "",
         status: 'upcoming' as const,
         userId: user.uid,
         id: '',
@@ -99,7 +83,7 @@ export function CreateTripDialog({ children, initialData }: CreateTripDialogProp
         travelers: Number.parseInt(formData.travelers),
         budget: Number.parseFloat(formData.budget),
         preferences: formData.preferences,
-        imageUrl: imagePreview || "",
+        imageUrl: "",
       })
       
       // Update with calculated status if different
@@ -107,8 +91,8 @@ export function CreateTripDialog({ children, initialData }: CreateTripDialogProp
         await updateTrip(newTrip.id, user.uid, { status: initialStatus })
       }
 
-      // If no custom image was uploaded, fetch and save Google Places photo
-      if (!imagePreview && newTrip.id) {
+      // Fetch and save Google Places photo
+      if (newTrip.id) {
         console.log('Fetching photo for new trip:', newTrip.id, formData.destination)
         try {
           const photoResponse = await fetch(`/api/destination-photo?destination=${encodeURIComponent(formData.destination)}`)
@@ -127,8 +111,6 @@ export function CreateTripDialog({ children, initialData }: CreateTripDialogProp
         } catch (error) {
           console.error('Error fetching destination photo:', error)
         }
-      } else {
-        console.log('Skipping photo fetch - imagePreview:', imagePreview, 'tripId:', newTrip.id)
       }
 
       toast.success('Trip created successfully!')
@@ -142,7 +124,6 @@ export function CreateTripDialog({ children, initialData }: CreateTripDialogProp
         budget: "",
         preferences: "",
       })
-      setImagePreview("")
 
       // Trigger refresh of trips list
       window.dispatchEvent(new Event('refreshTrips'))
@@ -163,36 +144,6 @@ export function CreateTripDialog({ children, initialData }: CreateTripDialogProp
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor="trip-photo">Trip Photo (Optional)</Label>
-            {imagePreview ? (
-              <div className="relative">
-                <img
-                  src={imagePreview || "/placeholder.svg"}
-                  alt="Trip preview"
-                  className="w-full h-48 object-cover rounded-lg border border-border"
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2"
-                  onClick={removeImage}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            ) : (
-              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors">
-                <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                <Label htmlFor="trip-photo" className="cursor-pointer">
-                  <span className="text-sm text-muted-foreground">Click to upload or drag and drop</span>
-                  <Input id="trip-photo" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                </Label>
-              </div>
-            )}
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="trip-name">Trip Name</Label>
             <Input
