@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Loader2, Upload, X } from "lucide-react"
-import { createTrip } from "@/lib/trips-storage"
+import { createTrip, updateTrip } from "@/lib/trips-storage"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { toast } from "sonner"
@@ -55,7 +55,9 @@ export function CreateTripDialog({ children }: { children: React.ReactNode }) {
     setLoading(true)
 
     try {
-      await createTrip(user.uid, {
+      // Calculate initial status based on dates
+      const { getTripStatus } = await import('@/lib/trip-utils')
+      const tempTrip = {
         name: formData.name,
         destination: formData.destination,
         startDate: formData.startDate,
@@ -63,8 +65,52 @@ export function CreateTripDialog({ children }: { children: React.ReactNode }) {
         travelers: Number.parseInt(formData.travelers),
         budget: Number.parseFloat(formData.budget),
         preferences: formData.preferences,
-        imageUrl: imagePreview || "/trips/tokyo-skyline.jpg",
+        imageUrl: imagePreview || "",
+        status: 'upcoming' as const,
+        userId: user.uid,
+        id: '',
+      }
+      const initialStatus = getTripStatus(tempTrip as any)
+      
+      const newTrip = await createTrip(user.uid, {
+        name: formData.name,
+        destination: formData.destination,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        travelers: Number.parseInt(formData.travelers),
+        budget: Number.parseFloat(formData.budget),
+        preferences: formData.preferences,
+        imageUrl: imagePreview || "",
       })
+      
+      // Update with calculated status if different
+      if (initialStatus !== 'upcoming') {
+        await updateTrip(newTrip.id, user.uid, { status: initialStatus })
+      }
+
+      // If no custom image was uploaded, fetch and save Google Places photo
+      if (!imagePreview && newTrip.id) {
+        console.log('Fetching photo for new trip:', newTrip.id, formData.destination)
+        try {
+          const photoResponse = await fetch(`/api/destination-photo?destination=${encodeURIComponent(formData.destination)}`)
+          const photoData = await photoResponse.json()
+          console.log('Photo response:', photoData)
+          
+          if (photoData.imageUrl) {
+            console.log('Saving photo to trip:', newTrip.id, photoData.imageUrl)
+            // Save the photo to Firestore directly (client-side with auth)
+            const { updateTrip } = await import('@/lib/trips-storage')
+            const success = await updateTrip(newTrip.id, user.uid, { imageUrl: photoData.imageUrl })
+            console.log('Photo save result:', success)
+          } else {
+            console.warn('No photo URL in response:', photoData)
+          }
+        } catch (error) {
+          console.error('Error fetching destination photo:', error)
+        }
+      } else {
+        console.log('Skipping photo fetch - imagePreview:', imagePreview, 'tripId:', newTrip.id)
+      }
 
       toast.success('Trip created successfully!')
       setOpen(false)
@@ -186,13 +232,12 @@ export function CreateTripDialog({ children }: { children: React.ReactNode }) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="budget">Budget (USD)</Label>
+              <Label htmlFor="budget">Budget (THB)</Label>
               <Input
                 id="budget"
                 type="number"
-                min="0"
+                placeholder="e.g., 50000"
                 step="0.01"
-                placeholder="e.g., 5000"
                 value={formData.budget}
                 onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
                 required

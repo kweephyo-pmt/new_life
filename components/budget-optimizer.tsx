@@ -44,7 +44,7 @@ export function BudgetOptimizer({ tripId, totalBudget }: BudgetOptimizerProps) {
             <span className="text-sm text-muted-foreground">Total Budget</span>
             <DollarSign className="w-4 h-4 text-primary" />
           </div>
-          <div className="text-2xl font-bold text-foreground">${budget.total.toLocaleString()}</div>
+          <div className="text-2xl font-bold text-foreground">฿{budget.total.toLocaleString()}</div>
         </Card>
 
         <Card className="p-4">
@@ -52,7 +52,7 @@ export function BudgetOptimizer({ tripId, totalBudget }: BudgetOptimizerProps) {
             <span className="text-sm text-muted-foreground">Spent</span>
             <TrendingDown className="w-4 h-4 text-destructive" />
           </div>
-          <div className="text-2xl font-bold text-foreground">${budget.spent.toLocaleString()}</div>
+          <div className="text-2xl font-bold text-foreground">฿{budget.spent.toLocaleString()}</div>
           <div className="text-xs text-muted-foreground mt-1">{budget.percentSpent.toFixed(1)}% used</div>
         </Card>
 
@@ -61,7 +61,7 @@ export function BudgetOptimizer({ tripId, totalBudget }: BudgetOptimizerProps) {
             <span className="text-sm text-muted-foreground">Remaining</span>
             <TrendingUp className="w-4 h-4 text-secondary" />
           </div>
-          <div className="text-2xl font-bold text-foreground">${budget.remaining.toLocaleString()}</div>
+          <div className="text-2xl font-bold text-foreground">฿{budget.remaining.toLocaleString()}</div>
           <div className="text-xs text-muted-foreground mt-1">{(100 - budget.percentSpent).toFixed(1)}% left</div>
         </Card>
       </div>
@@ -88,7 +88,7 @@ export function BudgetOptimizer({ tripId, totalBudget }: BudgetOptimizerProps) {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-foreground">{category.name}</span>
                   <span className="text-sm text-muted-foreground">
-                    ${category.spent} / ${category.budget}
+                    ฿{category.spent} / ฿{category.budget}
                   </span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -116,7 +116,7 @@ export function BudgetOptimizer({ tripId, totalBudget }: BudgetOptimizerProps) {
             <div key={index} className="p-4 rounded-lg border border-border bg-accent/30">
               <div className="flex items-start justify-between mb-2">
                 <h4 className="font-semibold text-foreground">{opt.title}</h4>
-                <span className="text-sm font-bold text-secondary">Save ${opt.savings}</span>
+                <span className="text-sm font-bold text-secondary">Save ฿{opt.savings}</span>
               </div>
               <p className="text-sm text-muted-foreground">{opt.description}</p>
             </div>
@@ -127,7 +127,7 @@ export function BudgetOptimizer({ tripId, totalBudget }: BudgetOptimizerProps) {
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-foreground">Total Potential Savings</span>
             <span className="text-xl font-bold text-secondary">
-              ${optimizations.reduce((sum, opt) => sum + opt.savings, 0)}
+              ฿{optimizations.reduce((sum, opt) => sum + opt.savings, 0)}
             </span>
           </div>
         </div>

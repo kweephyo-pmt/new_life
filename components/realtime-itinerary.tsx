@@ -109,7 +109,7 @@ export function RealtimeItinerary({ tripId }: { tripId: string }) {
           </div>
           <h3 className="text-xl font-semibold text-foreground mb-2">No itinerary yet</h3>
           <p className="text-muted-foreground mb-6">
-            Generate an AI-powered itinerary or create your own day-by-day plan
+            Generate an AI-powered itinerary
           </p>
         </div>
       </Card>
@@ -172,7 +172,7 @@ export function RealtimeItinerary({ tripId }: { tripId: string }) {
         <Card key={day.day} className="overflow-hidden">
           <button
             onClick={() => toggleDay(day.day)}
-            className="w-full p-6 flex items-center justify-between hover:bg-accent/50 transition-colors"
+            className="w-full p-6 flex items-center justify-between hover:bg-primary/5 transition-all duration-200 group"
           >
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -184,9 +184,9 @@ export function RealtimeItinerary({ tripId }: { tripId: string }) {
               </div>
             </div>
             {expandedDays.has(day.day) ? (
-              <ChevronUp className="w-5 h-5 text-muted-foreground" />
+              <ChevronUp className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
             ) : (
-              <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              <ChevronDown className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
             )}
           </button>
 

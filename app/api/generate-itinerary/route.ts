@@ -47,7 +47,7 @@ export async function POST(req: Request) {
       - Destination: ${destination}
       - Duration: ${days} days (${startDate} to ${endDate})
       - Number of travelers: ${travelers}
-      - Total budget: $${budget}
+      - Total budget: ฿${budget} THB (Thai Baht)
       ${preferences ? `- Preferences: ${preferences}` : ''}
       
       Requirements:

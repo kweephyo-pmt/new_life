@@ -5,21 +5,59 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Calendar, MapPin, Users, Clock, ChevronRight } from "lucide-react"
 import Link from "next/link"
-import { getTrips, type Trip } from "@/lib/trips-storage"
+import { getTrips, updateTrip, type Trip } from "@/lib/trips-storage"
 import { DeleteTripDialog } from "@/components/delete-trip-dialog"
 import { useAuth } from "@/contexts/AuthContext"
+import { getTripsWithCurrentStatus } from "@/lib/trip-utils"
 
 export function TripsList() {
   const { user } = useAuth()
   const [trips, setTrips] = useState<Trip[]>([])
   const [loading, setLoading] = useState(true)
+  const [destinationImages, setDestinationImages] = useState<Record<string, string>>({})
 
   const loadTrips = async () => {
     if (!user) return
     setLoading(true)
     try {
       const userTrips = await getTrips(user.uid)
-      setTrips(userTrips)
+      // Update trip statuses based on current date
+      const tripsWithStatus = getTripsWithCurrentStatus(userTrips)
+      setTrips(tripsWithStatus)
+      
+      // Fetch Google Places photos for trips that don't have imageUrl yet
+      const tripsNeedingPhotos = userTrips.filter(t => !t.imageUrl || t.imageUrl === '' || t.imageUrl.startsWith('/trips/'))
+      
+      if (tripsNeedingPhotos.length > 0) {
+        const imagePromises = tripsNeedingPhotos.map(async (trip) => {
+          try {
+            const response = await fetch(`/api/destination-photo?destination=${encodeURIComponent(trip.destination)}`)
+            const data = await response.json()
+            
+            // If we got a valid imageUrl, save it to Firestore
+            if (data.imageUrl) {
+              console.log(`Saving photo for ${trip.destination}:`, data.imageUrl)
+              // Update trip in Firestore directly (client-side with auth)
+              const success = await updateTrip(trip.id, user.uid, { imageUrl: data.imageUrl })
+              console.log(`Update result for ${trip.destination}:`, success)
+              return { tripId: trip.id, destination: trip.destination, imageUrl: data.imageUrl }
+            } else {
+              console.warn(`No image found for ${trip.destination}:`, data.error)
+              return { tripId: trip.id, destination: trip.destination, imageUrl: null }
+            }
+          } catch (error) {
+            console.error(`Error fetching image for ${trip.destination}:`, error)
+            return { tripId: trip.id, destination: trip.destination, imageUrl: null }
+          }
+        })
+        
+        const images = await Promise.all(imagePromises)
+        const imageMap: Record<string, string> = {}
+        images.forEach(({ destination, imageUrl }) => {
+          if (imageUrl) imageMap[destination] = imageUrl
+        })
+        setDestinationImages(imageMap)
+      }
     } catch (error) {
       console.error('Error loading trips:', error)
     } finally {
@@ -45,6 +83,17 @@ export function TripsList() {
   const getDuration = (start: string, end: string) => {
     const days = Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24))
     return `${days} days`
+  }
+
+  // Get destination-specific photo from Google Places
+  const getDestinationPhoto = (destination: string) => {
+    // Return Google Places photo if available
+    const photo = destinationImages[destination]
+    if (photo && photo !== 'null') {
+      return photo
+    }
+    // If no photo available, return null to show placeholder
+    return null
   }
 
   if (loading) {
@@ -83,49 +132,68 @@ export function TripsList() {
           </div>
 
           <Link href={`/trips/${trip.id}`}>
-            <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-              <div className="h-48 bg-muted overflow-hidden">
-                <img
-                  src={trip.imageUrl || "/placeholder.svg"}
-                  alt={trip.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
+            <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-md bg-card group/card">
+              <div className="relative h-56 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+                {(() => {
+                  const photoUrl = trip.imageUrl && !trip.imageUrl.startsWith('/trips/') ? trip.imageUrl : getDestinationPhoto(trip.destination)
+                  return photoUrl ? (
+                    <img
+                      src={photoUrl}
+                      alt={trip.name}
+                      className="w-full h-full object-cover object-center group-hover/card:scale-105 transition-transform duration-700 ease-out"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <MapPin className="w-16 h-16 text-muted-foreground/30" />
+                    </div>
+                  )
+                })()}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               </div>
               <div className="p-6">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="text-xl font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
+                    <h3 className="text-lg font-bold text-foreground mb-1 group-hover/card:text-primary transition-colors">
                       {trip.name}
                     </h3>
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                      <MapPin className="w-4 h-4" />
-                      <span className="text-sm">{trip.destination}</span>
-                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {trip.destination}
+                    </p>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                  <ChevronRight className="w-5 h-5 text-muted-foreground group-hover/card:text-primary group-hover/card:translate-x-1 transition-all" />
+                </div>
+                
+                <div className="text-2xl font-bold text-foreground mb-4">
+                  ฿{trip.budget.toLocaleString()}
                 </div>
 
-                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Calendar className="w-4 h-4" />
                     <span>
                       {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{getDuration(trip.startDate, trip.endDate)}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="w-4 h-4" />
-                    <span>{trip.travelers} travelers</span>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      <span>{getDuration(trip.startDate, trip.endDate)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      <span>{trip.travelers} {trip.travelers === 1 ? 'traveler' : 'travelers'}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-border">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                    {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
+                <div className="flex items-center justify-between pt-4 border-t">
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-md bg-primary/10 text-primary text-xs font-medium uppercase tracking-wide">
+                    {trip.status}
                   </span>
+                  <span className="text-sm text-primary font-medium group-hover/card:underline">View details</span>
                 </div>
               </div>
             </Card>

@@ -123,7 +123,7 @@ export function OptimalTiming({ destination, startDate, endDate }: OptimalTiming
                   {date.savings > 0 && (
                     <div className="flex items-center gap-1 text-sm font-medium text-secondary">
                       <TrendingDown className="w-4 h-4" />
-                      Save ${date.savings}
+                      Save ฿{date.savings}
                     </div>
                   )}
                 </div>

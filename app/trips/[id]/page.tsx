@@ -130,7 +130,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               </div>
               <div className="flex items-center gap-2">
                 <DollarSign className="w-5 h-5 text-primary" />
-                <span>${trip.budget.toLocaleString()} budget</span>
+                <span>฿{trip.budget.toLocaleString()} budget</span>
               </div>
             </div>
 

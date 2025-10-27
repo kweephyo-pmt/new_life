@@ -27,7 +27,7 @@ export function BudgetOverview() {
             <span className="text-sm text-muted-foreground">Total Budget</span>
             <DollarSign className="w-5 h-5 text-primary" />
           </div>
-          <div className="text-3xl font-bold text-foreground">${budget.total.toLocaleString()}</div>
+          <div className="text-3xl font-bold text-foreground">฿{budget.total.toLocaleString()}</div>
         </Card>
 
         <Card className="p-6">
@@ -35,7 +35,7 @@ export function BudgetOverview() {
             <span className="text-sm text-muted-foreground">Total Spent</span>
             <TrendingDown className="w-5 h-5 text-destructive" />
           </div>
-          <div className="text-3xl font-bold text-foreground">${budget.spent.toLocaleString()}</div>
+          <div className="text-3xl font-bold text-foreground">฿{budget.spent.toLocaleString()}</div>
           <div className="text-sm text-muted-foreground mt-1">{budget.percentSpent}% of budget</div>
         </Card>
 
@@ -44,7 +44,7 @@ export function BudgetOverview() {
             <span className="text-sm text-muted-foreground">Remaining</span>
             <TrendingUp className="w-5 h-5 text-secondary" />
           </div>
-          <div className="text-3xl font-bold text-foreground">${budget.remaining.toLocaleString()}</div>
+          <div className="text-3xl font-bold text-foreground">฿{budget.remaining.toLocaleString()}</div>
           <div className="text-sm text-muted-foreground mt-1">{(100 - budget.percentSpent).toFixed(1)}% left</div>
         </Card>
       </div>
@@ -66,7 +66,7 @@ export function BudgetOverview() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-foreground">{category.name}</span>
                   <span className="text-sm text-muted-foreground">
-                    ${category.spent} / ${category.budget}
+                    ฿{category.spent} / ฿{category.budget}
                   </span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">

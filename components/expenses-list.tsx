@@ -106,7 +106,7 @@ export function ExpensesList() {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <div className="text-lg font-bold text-foreground">${expense.amount}</div>
+                    <div className="text-lg font-bold text-foreground">฿{expense.amount}</div>
                     <span
                       className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(expense.category)}`}
                     >

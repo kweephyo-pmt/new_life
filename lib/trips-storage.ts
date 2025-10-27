@@ -88,7 +88,7 @@ export async function createTrip(
       ...tripData,
       userId,
       status: 'upcoming' as const,
-      imageUrl: tripData.imageUrl || '/trips/tokyo-skyline.jpg',
+      imageUrl: tripData.imageUrl || '',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     }
@@ -112,13 +112,8 @@ export async function updateTrip(
 ): Promise<boolean> {
   try {
     const tripRef = doc(db, TRIPS_COLLECTION, id)
-    const tripSnap = await getDoc(tripRef)
     
-    if (!tripSnap.exists()) return false
-    
-    const tripData = tripSnap.data() as Trip
-    if (tripData.userId !== userId) return false
-    
+    // Direct update - let Firestore security rules handle authorization
     await updateDoc(tripRef, {
       ...updates,
       updatedAt: serverTimestamp(),

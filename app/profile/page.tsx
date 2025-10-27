@@ -15,6 +15,8 @@ import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import { updateProfile } from "firebase/auth"
 import { MainNav } from "@/components/main-nav"
+import { getTrips, type Trip } from "@/lib/trips-storage"
+import { getTripsWithCurrentStatus } from "@/lib/trip-utils"
 
 export default function ProfilePage() {
   const { user, logout } = useAuth()
@@ -22,14 +24,38 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [displayName, setDisplayName] = useState('')
   const [loading, setLoading] = useState(false)
+  const [trips, setTrips] = useState<Trip[]>([])
+  const [tripsLoading, setTripsLoading] = useState(true)
 
   useEffect(() => {
     if (!user) {
       router.push('/login')
     } else {
       setDisplayName(user.displayName || '')
+      loadTrips()
     }
   }, [user, router])
+
+  const loadTrips = async () => {
+    if (!user) return
+    setTripsLoading(true)
+    try {
+      const userTrips = await getTrips(user.uid)
+      // Update trip statuses based on current date
+      const tripsWithStatus = getTripsWithCurrentStatus(userTrips)
+      // Sort by creation date, most recent first
+      const sortedTrips = tripsWithStatus.sort((a, b) => {
+        const dateA = a.createdAt instanceof Date ? a.createdAt : new Date()
+        const dateB = b.createdAt instanceof Date ? b.createdAt : new Date()
+        return dateB.getTime() - dateA.getTime()
+      })
+      setTrips(sortedTrips.slice(0, 5)) // Show only 5 most recent
+    } catch (error) {
+      console.error('Error loading trips:', error)
+    } finally {
+      setTripsLoading(false)
+    }
+  }
 
   const handleLogout = async () => {
     try {
@@ -145,20 +171,32 @@ export default function ProfilePage() {
                     <CardTitle>Recent Trips</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <TripItem
-                        title="Tokyo Adventure"
-                        date="March 2025"
-                        status="Upcoming"
-                        image="/trips/tokyo-skyline.jpg"
-                      />
-                      <TripItem
-                        title="Bali Retreat"
-                        date="January 2025"
-                        status="Completed"
-                        image="/trips/bali-beach.jpg"
-                      />
-                    </div>
+                    {tripsLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                      </div>
+                    ) : trips.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No trips yet. Start planning your first adventure!</p>
+                        <Link href="/trips">
+                          <Button className="mt-4" size="sm">Create Trip</Button>
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {trips.map((trip) => (
+                          <Link key={trip.id} href={`/trips/${trip.id}`}>
+                            <TripItem
+                              title={trip.name}
+                              destination={trip.destination}
+                              date={`${new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`}
+                              status={trip.status}
+                              image={trip.imageUrl}
+                            />
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
@@ -265,25 +303,42 @@ export default function ProfilePage() {
 
 function TripItem({
   title,
+  destination,
   date,
   status,
   image,
 }: {
   title: string
+  destination: string
   date: string
   status: string
   image: string
 }) {
+  const statusColors = {
+    upcoming: "bg-primary/10 text-primary",
+    ongoing: "bg-green-500/10 text-green-600",
+    completed: "bg-muted text-muted-foreground"
+  }
+  
   return (
-    <div className="flex items-center gap-4 p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors">
-      <img src={image || "/placeholder.svg"} alt={title} className="w-16 h-16 rounded-lg object-cover" />
+    <div className="flex items-center gap-4 p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer">
+      {image ? (
+        <img src={image} alt={title} className="w-16 h-16 rounded-lg object-cover" />
+      ) : (
+        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+          <MapPin className="w-8 h-8 text-primary/50" />
+        </div>
+      )}
       <div className="flex-1">
         <h3 className="font-semibold text-foreground">{title}</h3>
-        <p className="text-sm text-muted-foreground">{date}</p>
+        <p className="text-sm text-muted-foreground flex items-center gap-1">
+          <MapPin className="w-3 h-3" />
+          {destination} • {date}
+        </p>
       </div>
       <span
-        className={`text-xs px-2 py-1 rounded-full ${
-          status === "Upcoming" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+        className={`text-xs px-2 py-1 rounded-full capitalize ${
+          statusColors[status as keyof typeof statusColors] || statusColors.upcoming
         }`}
       >
         {status}
