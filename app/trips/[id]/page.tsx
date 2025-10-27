@@ -1,7 +1,8 @@
 'use client'
 
-import { Compass, Calendar, MapPin, Users, DollarSign } from "lucide-react"
+import { Calendar, MapPin, Users, DollarSign } from "lucide-react"
 import Link from "next/link"
+import { Logo } from "@/components/logo"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RealtimeItinerary } from "@/components/realtime-itinerary"
@@ -70,7 +71,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
-              <Compass className="w-8 h-8 text-primary" />
+              <Logo />
               <span className="text-2xl font-bold text-foreground">New Life</span>
             </Link>
             <MainNav />
@@ -94,7 +95,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <Compass className="w-8 h-8 text-primary" />
+            <Logo />
             <span className="text-2xl font-bold text-foreground">New Life</span>
           </Link>
           <MainNav />
@@ -166,15 +167,15 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               <TabsTrigger value="timing">Optimal Timing</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="itinerary">
+            <TabsContent value="itinerary" className="overflow-visible">
               <RealtimeItinerary tripId={trip.id} />
             </TabsContent>
 
-            <TabsContent value="budget">
+            <TabsContent value="budget" className="overflow-visible">
               <BudgetOptimizer tripId={trip.id} totalBudget={trip.budget} />
             </TabsContent>
 
-            <TabsContent value="timing">
+            <TabsContent value="timing" className="overflow-visible">
               <OptimalTiming destination={trip.destination} startDate={trip.startDate} endDate={trip.endDate} />
             </TabsContent>
           </Tabs>

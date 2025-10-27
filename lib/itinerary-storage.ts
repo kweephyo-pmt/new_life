@@ -73,16 +73,29 @@ export async function saveItinerary(
   days: ItineraryDay[]
 ): Promise<boolean> {
   try {
+    console.log('Saving itinerary:', { tripId, userId, daysCount: days.length })
     const itineraryRef = doc(db, ITINERARIES_COLLECTION, tripId)
     const itinerarySnap = await getDoc(itineraryRef)
     
     if (itinerarySnap.exists()) {
-      // Update existing itinerary
+      console.log('Itinerary exists, updating...')
+      // Update existing itinerary - verify ownership first
+      const existingData = itinerarySnap.data() as Itinerary
+      console.log('Existing userId:', existingData.userId, 'Current userId:', userId)
+      
+      if (existingData.userId !== userId) {
+        throw new Error('Unauthorized: Cannot update itinerary for another user')
+      }
+      
+      console.log('Attempting updateDoc...')
       await updateDoc(itineraryRef, {
         days,
+        userId, // Include userId in update to satisfy security rules
         updatedAt: serverTimestamp(),
       })
+      console.log('Update successful!')
     } else {
+      console.log('Itinerary does not exist, creating new...')
       // Create new itinerary
       await setDoc(itineraryRef, {
         tripId,
@@ -91,11 +104,14 @@ export async function saveItinerary(
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       })
+      console.log('Create successful!')
     }
     
     return true
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error saving itinerary:', error)
+    console.error('Error code:', error.code)
+    console.error('Error message:', error.message)
     return false
   }
 }

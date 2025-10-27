@@ -8,37 +8,56 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Loader2 } from "lucide-react"
+import { addExpense } from "@/lib/expenses-storage"
+import { useAuth } from "@/contexts/AuthContext"
+import { toast } from "sonner"
 
-export function AddExpenseDialog({ children }: { children: React.ReactNode }) {
+interface AddExpenseDialogProps {
+  tripId: string
+  onExpenseAdded?: () => void
+  children: React.ReactNode
+}
+
+export function AddExpenseDialog({ tripId, onExpenseAdded, children }: AddExpenseDialogProps) {
+  const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    title: "",
+    description: "",
     amount: "",
-    category: "Food & Dining",
+    category: "food" as const,
     date: new Date().toISOString().split("T")[0],
-    location: "",
-    notes: "",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!user) {
+      toast.error('You must be logged in')
+      return
+    }
+    
     setLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await addExpense(tripId, user.uid, {
+        description: formData.description,
+        amount: parseFloat(formData.amount),
+        category: formData.category,
+        date: formData.date,
+      })
+      
+      toast.success('Expense added successfully!')
       setOpen(false)
       setFormData({
-        title: "",
+        description: "",
         amount: "",
-        category: "Food & Dining",
+        category: "food",
         date: new Date().toISOString().split("T")[0],
-        location: "",
-        notes: "",
       })
-    } catch (error) {
+      onExpenseAdded?.()
+    } catch (error: any) {
       console.error("Error adding expense:", error)
+      toast.error(error.message || 'Failed to add expense')
     } finally {
       setLoading(false)
     }
@@ -54,12 +73,12 @@ export function AddExpenseDialog({ children }: { children: React.ReactNode }) {
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="expense-title">Title</Label>
+            <Label htmlFor="expense-description">Description</Label>
             <Input
-              id="expense-title"
+              id="expense-description"
               placeholder="e.g., Lunch at local restaurant"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               required
             />
           </div>
@@ -83,50 +102,27 @@ export function AddExpenseDialog({ children }: { children: React.ReactNode }) {
               <select
                 id="category"
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 required
               >
-                <option value="Food & Dining">Food & Dining</option>
-                <option value="Accommodation">Accommodation</option>
-                <option value="Transportation">Transportation</option>
-                <option value="Activities">Activities</option>
-                <option value="Shopping">Shopping</option>
-                <option value="Other">Other</option>
+                <option value="food">Food & Dining</option>
+                <option value="accommodation">Accommodation</option>
+                <option value="transportation">Transportation</option>
+                <option value="activities">Activities</option>
+                <option value="other">Other</option>
               </select>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="expense-date">Date</Label>
-              <Input
-                id="expense-date"
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="expense-location">Location</Label>
-              <Input
-                id="expense-location"
-                placeholder="e.g., Tokyo, Japan"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              />
-            </div>
-          </div>
-
           <div className="space-y-2">
-            <Label htmlFor="expense-notes">Notes (Optional)</Label>
-            <Textarea
-              id="expense-notes"
-              placeholder="Add any additional details..."
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              rows={3}
+            <Label htmlFor="expense-date">Date</Label>
+            <Input
+              id="expense-date"
+              type="date"
+              value={formData.date}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              required
             />
           </div>
 

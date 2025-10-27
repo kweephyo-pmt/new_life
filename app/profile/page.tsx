@@ -1,8 +1,9 @@
 'use client'
 
-import { Compass, User, MapPin, Calendar, Settings, LogOut, Mail, Edit2 } from "lucide-react"
+import { User, MapPin, Calendar, Settings, LogOut, Mail, Edit2 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Logo } from "@/components/logo"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -25,6 +26,7 @@ export default function ProfilePage() {
   const [displayName, setDisplayName] = useState('')
   const [loading, setLoading] = useState(false)
   const [trips, setTrips] = useState<Trip[]>([])
+  const [allTrips, setAllTrips] = useState<Trip[]>([])
   const [tripsLoading, setTripsLoading] = useState(true)
 
   useEffect(() => {
@@ -49,12 +51,25 @@ export default function ProfilePage() {
         const dateB = b.createdAt instanceof Date ? b.createdAt : new Date()
         return dateB.getTime() - dateA.getTime()
       })
+      setAllTrips(sortedTrips) // Store all trips for stats
       setTrips(sortedTrips.slice(0, 5)) // Show only 5 most recent
     } catch (error) {
       console.error('Error loading trips:', error)
     } finally {
       setTripsLoading(false)
     }
+  }
+
+  // Calculate statistics
+  const stats = {
+    totalTrips: allTrips.length,
+    tripsThisYear: allTrips.filter(trip => {
+      const tripYear = new Date(trip.startDate).getFullYear()
+      return tripYear === new Date().getFullYear()
+    }).length,
+    uniqueDestinations: new Set(allTrips.map(trip => trip.destination.split(',')[0].trim())).size,
+    totalBudget: allTrips.reduce((sum, trip) => sum + trip.budget, 0),
+    completedTrips: allTrips.filter(trip => trip.status === 'completed').length,
   }
 
   const handleLogout = async () => {
@@ -107,7 +122,7 @@ export default function ProfilePage() {
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <Compass className="w-8 h-8 text-primary" />
+            <Logo />
             <span className="text-2xl font-bold text-foreground">New Life</span>
           </Link>
           <MainNav />
@@ -209,17 +224,21 @@ export default function ProfilePage() {
                     <CardTitle className="text-sm font-medium">Total Trips</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-primary">17</div>
-                    <p className="text-xs text-muted-foreground mt-1">+3 this year</p>
+                    <div className="text-3xl font-bold text-primary">{stats.totalTrips}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {stats.tripsThisYear > 0 ? `+${stats.tripsThisYear} this year` : 'Start planning your first trip!'}
+                    </p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-sm font-medium">Countries Visited</CardTitle>
+                    <CardTitle className="text-sm font-medium">Destinations</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-primary">12</div>
-                    <p className="text-xs text-muted-foreground mt-1">Across 4 continents</p>
+                    <div className="text-3xl font-bold text-primary">{stats.uniqueDestinations}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {stats.completedTrips} completed
+                    </p>
                   </CardContent>
                 </Card>
                 <Card>
@@ -227,8 +246,10 @@ export default function ProfilePage() {
                     <CardTitle className="text-sm font-medium">Total Budget</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-primary">$24,500</div>
-                    <p className="text-xs text-muted-foreground mt-1">Lifetime spending</p>
+                    <div className="text-3xl font-bold text-primary">
+                      ฿{stats.totalBudget.toLocaleString()}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Planned spending</p>
                   </CardContent>
                 </Card>
               </div>

@@ -1,12 +1,15 @@
 'use client'
 
-import { Compass } from "lucide-react"
+import { TrendingUp, MapPin, Users } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { TrendingDestinations } from "@/components/trending-destinations"
+import { MainNav } from "@/components/main-nav"
+import { Logo } from "@/components/logo"
 import { DestinationMap } from "@/components/destination-map"
 import { PhotoGallery } from "@/components/photo-gallery"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { MainNav } from "@/components/main-nav"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
@@ -39,7 +42,7 @@ export default function DiscoverPage() {
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <Compass className="w-8 h-8 text-primary" />
+            <Logo />
             <span className="text-2xl font-bold text-foreground">New Life</span>
           </Link>
           <MainNav />

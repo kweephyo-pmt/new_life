@@ -42,7 +42,7 @@ export function OptimalTiming({ destination, startDate, endDate }: OptimalTiming
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       {/* Current Timing Analysis */}
       <div className="grid md:grid-cols-3 gap-4">
         <Card className="p-4">

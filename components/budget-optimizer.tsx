@@ -1,9 +1,12 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { DollarSign, TrendingUp, TrendingDown, Lightbulb, Plus } from "lucide-react"
 import { AddExpenseDialog } from "@/components/add-expense-dialog"
+import { getExpenses, type Expense } from "@/lib/expenses-storage"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface BudgetOptimizerProps {
   tripId: string
@@ -11,29 +14,96 @@ interface BudgetOptimizerProps {
 }
 
 export function BudgetOptimizer({ tripId, totalBudget }: BudgetOptimizerProps) {
-  // TODO: Load expenses from Firestore based on tripId
-  // For now showing initial budget with no expenses
-  const budget = {
-    total: totalBudget,
-    spent: 0,
-    remaining: totalBudget,
-    percentSpent: 0,
+  const { user } = useAuth()
+  const [expenses, setExpenses] = useState<Expense[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadExpenses()
+  }, [tripId, user])
+
+  const loadExpenses = async () => {
+    if (!user) return
+    setLoading(true)
+    try {
+      const data = await getExpenses(tripId, user.uid)
+      setExpenses(data)
+    } catch (error) {
+      console.error('Error loading expenses:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
+  // Calculate totals
+  const totalSpent = expenses.reduce((sum, exp) => sum + exp.amount, 0)
+  const budget = {
+    total: totalBudget,
+    spent: totalSpent,
+    remaining: totalBudget - totalSpent,
+    percentSpent: (totalSpent / totalBudget) * 100,
+  }
+
+  // Calculate category spending
+  const categoryMap: Record<string, number> = {
+    accommodation: 0,
+    food: 0,
+    transportation: 0,
+    activities: 0,
+    other: 0,
+  }
+  
+  expenses.forEach(exp => {
+    categoryMap[exp.category] = (categoryMap[exp.category] || 0) + exp.amount
+  })
+
   const categories = [
-    { name: "Accommodation", spent: 0, budget: totalBudget * 0.3, color: "bg-chart-1" },
-    { name: "Food & Dining", spent: 0, budget: totalBudget * 0.25, color: "bg-chart-2" },
-    { name: "Transportation", spent: 0, budget: totalBudget * 0.2, color: "bg-chart-3" },
-    { name: "Activities", spent: 0, budget: totalBudget * 0.25, color: "bg-chart-4" },
+    { name: "Accommodation", key: "accommodation", spent: categoryMap.accommodation, budget: totalBudget * 0.3, color: "bg-blue-500" },
+    { name: "Food & Dining", key: "food", spent: categoryMap.food, budget: totalBudget * 0.25, color: "bg-green-500" },
+    { name: "Transportation", key: "transportation", spent: categoryMap.transportation, budget: totalBudget * 0.2, color: "bg-yellow-500" },
+    { name: "Activities", key: "activities", spent: categoryMap.activities, budget: totalBudget * 0.25, color: "bg-purple-500" },
   ]
 
-  const optimizations = [
-    {
+  // Generate AI optimization suggestions
+  const optimizations = []
+  
+  if (expenses.length === 0) {
+    optimizations.push({
       title: "Track your expenses",
       savings: 0,
       description: "Start adding expenses to get personalized budget optimization tips",
-    },
-  ]
+    })
+  } else {
+    // Check for overspending categories
+    categories.forEach(cat => {
+      if (cat.spent > cat.budget) {
+        const overspend = cat.spent - cat.budget
+        optimizations.push({
+          title: `Reduce ${cat.name} spending`,
+          savings: Math.round(overspend * 0.2),
+          description: `You're ฿${Math.round(overspend)} over budget. Consider more budget-friendly options.`,
+        })
+      }
+    })
+
+    // If under budget, suggest savings
+    if (budget.remaining > 0 && budget.percentSpent < 80) {
+      optimizations.push({
+        title: "You're on track!",
+        savings: Math.round(budget.remaining * 0.1),
+        description: `Great job! You have ฿${Math.round(budget.remaining)} remaining. Keep monitoring your spending.`,
+      })
+    }
+
+    // If no specific issues, give general tip
+    if (optimizations.length === 0) {
+      optimizations.push({
+        title: "Balanced spending",
+        savings: 0,
+        description: "Your budget is well-distributed across categories. Keep it up!",
+      })
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -70,7 +140,7 @@ export function BudgetOptimizer({ tripId, totalBudget }: BudgetOptimizerProps) {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-foreground">Budget Breakdown</h3>
-          <AddExpenseDialog>
+          <AddExpenseDialog tripId={tripId} onExpenseAdded={loadExpenses}>
             <Button size="sm" variant="outline">
               <Plus className="w-4 h-4 mr-2" />
               Add Expense

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,21 +14,40 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { toast } from "sonner"
 
-export function CreateTripDialog({ children }: { children: React.ReactNode }) {
+interface CreateTripDialogProps {
+  children: React.ReactNode
+  initialData?: {
+    name?: string
+    destination?: string
+  }
+}
+
+export function CreateTripDialog({ children, initialData }: CreateTripDialogProps) {
   const { user } = useAuth()
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [imagePreview, setImagePreview] = useState<string>("")
   const [formData, setFormData] = useState({
-    name: "",
-    destination: "",
+    name: initialData?.name || "",
+    destination: initialData?.destination || "",
     startDate: "",
     endDate: "",
     travelers: "1",
     budget: "",
     preferences: "",
   })
+
+  // Update form when dialog opens with initialData
+  useEffect(() => {
+    if (open && initialData) {
+      setFormData(prev => ({
+        ...prev,
+        name: initialData.name || prev.name,
+        destination: initialData.destination || prev.destination,
+      }))
+    }
+  }, [open, initialData])
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
