@@ -243,9 +243,19 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
   if (posts.length === 0) {
     return (
       <Card className="p-12 text-center">
-        <MessageCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-foreground mb-2">No posts yet</h3>
-        <p className="text-muted-foreground">Be the first to share your travel story!</p>
+        {filterSaved ? (
+          <>
+            <Bookmark className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">No saved posts yet</h3>
+            <p className="text-muted-foreground">Bookmark posts to save them for later</p>
+          </>
+        ) : (
+          <>
+            <MessageCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">No posts yet</h3>
+            <p className="text-muted-foreground">Be the first to share your travel story!</p>
+          </>
+        )}
       </Card>
     )
   }
