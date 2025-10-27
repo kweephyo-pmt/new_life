@@ -347,10 +347,36 @@ export async function getSavedPosts(userId: string): Promise<Post[]> {
     )
     
     const querySnapshot = await getDocs(q)
-    return querySnapshot.docs.map(doc => ({
+    const posts = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     } as Post))
+
+    // Enrich posts with user profile data
+    const enrichedPosts = await Promise.all(
+      posts.map(async (post) => {
+        try {
+          const userProfileDoc = await getDoc(doc(db, 'userProfiles', post.userId))
+          if (userProfileDoc.exists()) {
+            const profile = userProfileDoc.data()
+            return {
+              ...post,
+              author: {
+                ...post.author,
+                name: profile.displayName || post.author.name,
+                username: profile.username || post.author.username,
+                photoURL: profile.photoURL || undefined
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error)
+        }
+        return post
+      })
+    )
+
+    return enrichedPosts
   } catch (error) {
     console.error('Error getting saved posts:', error)
     return []

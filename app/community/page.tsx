@@ -1,6 +1,6 @@
 'use client'
 
-import { MessageSquare, Sparkles } from "lucide-react"
+import { MessageSquare, Sparkles, Bookmark, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,6 +12,7 @@ import { CreatePostDialog } from "@/components/create-post-dialog"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import { getSavedPosts, type Post as FirestorePost } from "@/lib/posts-storage"
 
 export default function CommunityPage() {
   const { user, loading } = useAuth()
@@ -71,30 +72,19 @@ export default function CommunityPage() {
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
           <Tabs defaultValue="feed" className="space-y-6">
-            <TabsList className="grid w-full max-w-md grid-cols-3">
-              <TabsTrigger value="feed">Feed</TabsTrigger>
-              <TabsTrigger value="trending">Trending</TabsTrigger>
-              <TabsTrigger value="saved">Saved</TabsTrigger>
-            </TabsList>
+            <div className="flex justify-center mb-6">
+              <TabsList className="grid w-full max-w-3xl grid-cols-2 h-12">
+                <TabsTrigger value="feed" className="text-lg">Feed</TabsTrigger>
+                <TabsTrigger value="saved" className="text-lg">Saved</TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="feed" className="space-y-6">
               <TravelFeed key={refreshKey} />
             </TabsContent>
 
-            <TabsContent value="trending">
-              <Card className="p-12 text-center">
-                <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">Coming Soon</h3>
-                <p className="text-muted-foreground">Trending destinations will be available soon</p>
-              </Card>
-            </TabsContent>
-
             <TabsContent value="saved">
-              <Card className="p-12 text-center">
-                <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">No saved posts yet</h3>
-                <p className="text-muted-foreground">Bookmark posts to save them for later</p>
-              </Card>
+              <TravelFeed key={`saved-${refreshKey}`} filterSaved={true} />
             </TabsContent>
           </Tabs>
         </div>

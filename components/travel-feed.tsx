@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Heart, MessageCircle, Share2, Bookmark, MapPin, MoreVertical, Loader2, Trash2, Pencil, Send } from "lucide-react"
-import { getAllPosts, toggleLike, toggleSave, deletePost, addComment, getComments, deleteComment, type Post as FirestorePost, type Comment } from "@/lib/posts-storage"
+import { getAllPosts, getSavedPosts, toggleLike, toggleSave, deletePost, addComment, getComments, deleteComment, type Post as FirestorePost, type Comment } from "@/lib/posts-storage"
 import { EditPostDialog } from "@/components/edit-post-dialog"
 import { useAuth } from "@/contexts/AuthContext"
 import { Timestamp } from "firebase/firestore"
@@ -48,7 +48,11 @@ interface Post {
   createdAt: Timestamp
 }
 
-export function TravelFeed() {
+interface TravelFeedProps {
+  filterSaved?: boolean
+}
+
+export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
   const { user } = useAuth()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
@@ -84,7 +88,9 @@ export function TravelFeed() {
   const loadPosts = async () => {
     try {
       setLoading(true)
-      const fetchedPosts = await getAllPosts()
+      const fetchedPosts = filterSaved && user 
+        ? await getSavedPosts(user.uid)
+        : await getAllPosts()
       setPosts(fetchedPosts)
     } catch (error) {
       console.error('Error loading posts:', error)
