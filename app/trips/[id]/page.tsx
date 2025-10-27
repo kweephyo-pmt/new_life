@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState, use } from "react"
 import { getTripById, type Trip } from "@/lib/trips-storage"
 import { DeleteTripDialog } from "@/components/delete-trip-dialog"
+import { EditTripDialog } from "@/components/edit-trip-dialog"
 
 export default function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -29,20 +30,20 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     }
   }, [user, authLoading, router])
 
-  useEffect(() => {
-    const loadTrip = async () => {
-      if (!user) return
-      setLoading(true)
-      try {
-        const tripData = await getTripById(id, user.uid)
-        setTrip(tripData)
-      } catch (error) {
-        console.error('Error loading trip:', error)
-      } finally {
-        setLoading(false)
-      }
+  const loadTrip = async () => {
+    if (!user) return
+    setLoading(true)
+    try {
+      const tripData = await getTripById(id, user.uid)
+      setTrip(tripData)
+    } catch (error) {
+      console.error('Error loading trip:', error)
+    } finally {
+      setLoading(false)
     }
-    
+  }
+
+  useEffect(() => {
     loadTrip()
   }, [id, user])
 
@@ -148,7 +149,9 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                   window.dispatchEvent(new Event('refreshItinerary'))
                 }}
               />
-              <Button variant="outline">Edit Trip</Button>
+              <EditTripDialog trip={trip} onUpdate={loadTrip}>
+                <Button variant="outline">Edit Trip</Button>
+              </EditTripDialog>
               <ShareTripDialog tripName={trip.name}>
                 <Button variant="outline">Share</Button>
               </ShareTripDialog>
