@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button"
 import { Trash2 } from "lucide-react"
 import { deleteTrip } from "@/lib/trips-storage"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
+import { toast } from "sonner"
 
 interface DeleteTripDialogProps {
   tripId: string
@@ -24,18 +26,37 @@ interface DeleteTripDialogProps {
 }
 
 export function DeleteTripDialog({ tripId, tripName, redirectAfterDelete = false }: DeleteTripDialogProps) {
+  const { user } = useAuth()
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  const handleDelete = () => {
-    const success = deleteTrip(tripId)
-    if (success) {
-      setOpen(false)
-      if (redirectAfterDelete) {
-        router.push("/trips")
+  const handleDelete = async () => {
+    if (!user) {
+      toast.error('You must be logged in to delete a trip')
+      return
+    }
+    
+    setLoading(true)
+    try {
+      const success = await deleteTrip(tripId, user.uid)
+      if (success) {
+        toast.success('Trip deleted successfully')
+        setOpen(false)
+        if (redirectAfterDelete) {
+          router.push("/trips")
+        } else {
+          // Trigger refresh of trips list
+          window.dispatchEvent(new Event('refreshTrips'))
+        }
       } else {
-        router.refresh()
+        toast.error('Failed to delete trip')
       }
+    } catch (error) {
+      console.error('Error deleting trip:', error)
+      toast.error('Failed to delete trip')
+    } finally {
+      setLoading(false)
     }
   }
 

@@ -11,35 +11,27 @@ interface BudgetOptimizerProps {
 }
 
 export function BudgetOptimizer({ tripId, totalBudget }: BudgetOptimizerProps) {
+  // TODO: Load expenses from Firestore based on tripId
+  // For now showing initial budget with no expenses
   const budget = {
     total: totalBudget,
-    spent: 2340,
-    remaining: totalBudget - 2340,
-    percentSpent: (2340 / totalBudget) * 100,
+    spent: 0,
+    remaining: totalBudget,
+    percentSpent: 0,
   }
 
   const categories = [
-    { name: "Accommodation", spent: 980, budget: 1500, color: "bg-chart-1" },
-    { name: "Food & Dining", spent: 650, budget: 1200, color: "bg-chart-2" },
-    { name: "Transportation", spent: 420, budget: 800, color: "bg-chart-3" },
-    { name: "Activities", spent: 290, budget: 1000, color: "bg-chart-4" },
+    { name: "Accommodation", spent: 0, budget: totalBudget * 0.3, color: "bg-chart-1" },
+    { name: "Food & Dining", spent: 0, budget: totalBudget * 0.25, color: "bg-chart-2" },
+    { name: "Transportation", spent: 0, budget: totalBudget * 0.2, color: "bg-chart-3" },
+    { name: "Activities", spent: 0, budget: totalBudget * 0.25, color: "bg-chart-4" },
   ]
 
   const optimizations = [
     {
-      title: "Switch to local restaurants",
-      savings: 180,
-      description: "Save $180 by dining at local spots instead of tourist areas",
-    },
-    {
-      title: "Book activities in advance",
-      savings: 120,
-      description: "Early bird discounts available for Tokyo DisneySea and other attractions",
-    },
-    {
-      title: "Use day passes for transport",
-      savings: 65,
-      description: "Daily metro passes are more economical than individual tickets",
+      title: "Track your expenses",
+      savings: 0,
+      description: "Start adding expenses to get personalized budget optimization tips",
     },
   ]
 

@@ -7,20 +7,36 @@ import { Calendar, MapPin, Users, Clock, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { getTrips, type Trip } from "@/lib/trips-storage"
 import { DeleteTripDialog } from "@/components/delete-trip-dialog"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function TripsList() {
+  const { user } = useAuth()
   const [trips, setTrips] = useState<Trip[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const loadTrips = async () => {
+    if (!user) return
+    setLoading(true)
+    try {
+      const userTrips = await getTrips(user.uid)
+      setTrips(userTrips)
+    } catch (error) {
+      console.error('Error loading trips:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    setTrips(getTrips())
+    loadTrips()
+  }, [user])
 
-    const handleStorageChange = () => {
-      setTrips(getTrips())
-    }
-
-    window.addEventListener("storage", handleStorageChange)
-    return () => window.removeEventListener("storage", handleStorageChange)
-  }, [])
+  // Expose refresh function for child components
+  useEffect(() => {
+    const handleRefresh = () => loadTrips()
+    window.addEventListener('refreshTrips', handleRefresh)
+    return () => window.removeEventListener('refreshTrips', handleRefresh)
+  }, [user])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
@@ -29,6 +45,14 @@ export function TripsList() {
   const getDuration = (start: string, end: string) => {
     const days = Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24))
     return `${days} days`
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    )
   }
 
   if (trips.length === 0) {

@@ -10,44 +10,34 @@ interface OptimalTimingProps {
 }
 
 export function OptimalTiming({ destination, startDate, endDate }: OptimalTimingProps) {
+  // TODO: Integrate with real weather and pricing APIs
+  // For now, showing placeholder data based on the actual trip dates
   const timing = {
     weather: {
       score: 85,
-      description: "Excellent weather conditions",
-      temp: "18-24°C",
-      rainfall: "Low",
+      description: `Weather analysis for ${destination}`,
+      temp: "Varies by season",
+      rainfall: "Check forecast closer to date",
     },
     pricing: {
       score: 72,
-      description: "Moderate pricing period",
+      description: "Pricing analysis in progress",
       flightTrend: "stable",
       hotelTrend: "increasing",
     },
     crowds: {
       score: 68,
-      description: "Moderate tourist activity",
+      description: "Tourist activity analysis",
       level: "Medium",
     },
   }
 
   const betterDates = [
     {
-      month: "April",
-      reason: "Cherry blossom season with perfect weather",
+      month: "Alternative dates",
+      reason: "Weather and pricing optimization coming soon",
       savings: 0,
-      weatherScore: 95,
-    },
-    {
-      month: "October",
-      reason: "Fall colors and comfortable temperatures",
-      savings: 280,
-      weatherScore: 90,
-    },
-    {
-      month: "November",
-      reason: "Lower prices and fewer crowds",
-      savings: 450,
-      weatherScore: 80,
+      weatherScore: 85,
     },
   ]
 

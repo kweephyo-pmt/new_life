@@ -1,10 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Clock, MapPin, Plus, ChevronDown, ChevronUp, Zap, AlertCircle } from "lucide-react"
+import { Clock, MapPin, Plus, ChevronDown, ChevronUp, Zap, AlertCircle, Calendar } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { getItinerary, type ItineraryDay as StoredItineraryDay } from "@/lib/itinerary-storage"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface ItineraryDay {
   day: number
@@ -25,56 +27,37 @@ interface Activity {
 }
 
 export function RealtimeItinerary({ tripId }: { tripId: string }) {
-  const [itinerary, setItinerary] = useState<ItineraryDay[]>([
-    {
-      day: 1,
-      date: "June 15, 2025",
-      activities: [
-        {
-          id: "1",
-          time: "09:00 AM",
-          title: "Arrive at Narita Airport",
-          location: "Narita International Airport",
-          description: "Land in Tokyo and clear customs",
-          duration: "2 hours",
-          type: "transport",
-          status: "on-time",
-        },
-        {
-          id: "2",
-          time: "12:00 PM",
-          title: "Check-in at Hotel",
-          location: "Shibuya District",
-          description: "Check into your hotel and freshen up",
-          duration: "1 hour",
-          type: "accommodation",
-        },
-        {
-          id: "3",
-          time: "02:00 PM",
-          title: "Explore Shibuya Crossing",
-          location: "Shibuya",
-          description: "Visit the famous scramble crossing and explore the area",
-          duration: "2 hours",
-          type: "attraction",
-          status: "updated",
-          liveUpdate: "Light rain expected - bring umbrella",
-        },
-        {
-          id: "4",
-          time: "06:00 PM",
-          title: "Dinner at Izakaya",
-          location: "Shibuya",
-          description: "Experience authentic Japanese pub food",
-          duration: "2 hours",
-          type: "food",
-        },
-      ],
-    },
-  ])
+  const { user } = useAuth()
+  const [itinerary, setItinerary] = useState<ItineraryDay[]>([])
+  const [loading, setLoading] = useState(true)
 
   const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set([1]))
   const [showLiveUpdates, setShowLiveUpdates] = useState(true)
+
+  // Load itinerary from Firestore
+  const loadItinerary = async () => {
+    if (!user) return
+    setLoading(true)
+    try {
+      const days = await getItinerary(tripId, user.uid)
+      setItinerary(days)
+    } catch (error) {
+      console.error('Error loading itinerary:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadItinerary()
+  }, [tripId, user])
+
+  // Listen for itinerary generation events
+  useEffect(() => {
+    const handleRefresh = () => loadItinerary()
+    window.addEventListener('refreshItinerary', handleRefresh)
+    return () => window.removeEventListener('refreshItinerary', handleRefresh)
+  }, [tripId, user])
 
   const toggleDay = (day: number) => {
     const newExpanded = new Set(expandedDays)
@@ -151,22 +134,41 @@ export function RealtimeItinerary({ tripId }: { tripId: string }) {
         </Button>
       </div>
 
-      {/* Live Updates Banner */}
-      {showLiveUpdates && (
-        <Card className="p-4 bg-primary/5 border-primary/20">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-primary mt-0.5" />
-            <div className="flex-1">
-              <h4 className="font-semibold text-foreground mb-1">Real-time adjustments active</h4>
-              <p className="text-sm text-muted-foreground">
-                Your itinerary is being monitored for weather, traffic, and venue updates
-              </p>
+      {/* Loading State */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      ) : itinerary.length === 0 ? (
+        <Card className="p-12 text-center">
+          <div className="max-w-md mx-auto">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+              <Calendar className="w-8 h-8 text-muted-foreground" />
             </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">No itinerary yet</h3>
+            <p className="text-muted-foreground mb-6">
+              Generate an AI-powered itinerary for your trip using the button above
+            </p>
           </div>
         </Card>
-      )}
+      ) : (
+        <>
+          {/* Live Updates Banner */}
+          {showLiveUpdates && (
+            <Card className="p-4 bg-primary/5 border-primary/20">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-primary mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground mb-1">Real-time adjustments active</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Your itinerary is being monitored for weather, traffic, and venue updates
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
 
-      {itinerary.map((day) => (
+          {itinerary.map((day) => (
         <Card key={day.day} className="overflow-hidden">
           <button
             onClick={() => toggleDay(day.day)}
@@ -233,6 +235,8 @@ export function RealtimeItinerary({ tripId }: { tripId: string }) {
           )}
         </Card>
       ))}
+        </>
+      )}
     </div>
   )
 }

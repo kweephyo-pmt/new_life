@@ -11,8 +11,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Loader2, Upload, X } from "lucide-react"
 import { createTrip } from "@/lib/trips-storage"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
+import { toast } from "sonner"
 
 export function CreateTripDialog({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth()
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -44,10 +47,15 @@ export function CreateTripDialog({ children }: { children: React.ReactNode }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!user) {
+      toast.error('You must be logged in to create a trip')
+      return
+    }
+    
     setLoading(true)
 
     try {
-      const newTrip = createTrip({
+      await createTrip(user.uid, {
         name: formData.name,
         destination: formData.destination,
         startDate: formData.startDate,
@@ -58,8 +66,7 @@ export function CreateTripDialog({ children }: { children: React.ReactNode }) {
         imageUrl: imagePreview || "/trips/tokyo-skyline.jpg",
       })
 
-      console.log("[v0] Trip created:", newTrip)
-
+      toast.success('Trip created successfully!')
       setOpen(false)
       setFormData({
         name: "",
@@ -72,9 +79,11 @@ export function CreateTripDialog({ children }: { children: React.ReactNode }) {
       })
       setImagePreview("")
 
-      router.refresh()
+      // Trigger refresh of trips list
+      window.dispatchEvent(new Event('refreshTrips'))
     } catch (error) {
-      console.error("[v0] Error creating trip:", error)
+      console.error("Error creating trip:", error)
+      toast.error('Failed to create trip')
     } finally {
       setLoading(false)
     }

@@ -12,29 +12,39 @@ import { OptimalTiming } from "@/components/optimal-timing"
 import { MainNav } from "@/components/main-nav"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState, use } from "react"
+import { getTripById, type Trip } from "@/lib/trips-storage"
+import { DeleteTripDialog } from "@/components/delete-trip-dialog"
 
-export default function TripDetailPage({ params }: { params: { id: string } }) {
-  const { user, loading } = useAuth()
+export default function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const { user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const [trip, setTrip] = useState<Trip | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       router.push('/login')
     }
-  }, [user, loading, router])
+  }, [user, authLoading, router])
 
-  // Mock trip data
-  const trip = {
-    id: params.id,
-    name: "Tokyo Adventure",
-    destination: "Tokyo, Japan",
-    startDate: "2025-06-15",
-    endDate: "2025-06-25",
-    travelers: 2,
-    budget: 5000,
-    imageUrl: "/trips/tokyo-skyline.jpg",
-  }
+  useEffect(() => {
+    const loadTrip = async () => {
+      if (!user) return
+      setLoading(true)
+      try {
+        const tripData = await getTripById(id, user.uid)
+        setTrip(tripData)
+      } catch (error) {
+        console.error('Error loading trip:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    loadTrip()
+  }, [id, user])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
@@ -45,7 +55,7 @@ export default function TripDetailPage({ params }: { params: { id: string } }) {
     return `${days} days`
   }
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -53,8 +63,28 @@ export default function TripDetailPage({ params }: { params: { id: string } }) {
     )
   }
 
-  if (!user) {
-    return null
+  if (!user || !trip) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2">
+              <Compass className="w-8 h-8 text-primary" />
+              <span className="text-2xl font-bold text-foreground">New Life</span>
+            </Link>
+            <MainNav />
+          </div>
+        </header>
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-5xl mx-auto text-center">
+            <h1 className="text-2xl font-bold text-foreground mb-4">Trip not found</h1>
+            <Button asChild>
+              <Link href="/trips">Back to My Trips</Link>
+            </Button>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   return (
@@ -108,12 +138,21 @@ export default function TripDetailPage({ params }: { params: { id: string } }) {
               <GenerateItineraryButton
                 tripId={trip.id}
                 destination={trip.destination}
-                duration={getDuration(trip.startDate, trip.endDate)}
+                startDate={trip.startDate}
+                endDate={trip.endDate}
+                travelers={trip.travelers}
+                budget={trip.budget}
+                preferences={trip.preferences}
+                onGenerated={() => {
+                  // Trigger refresh of itinerary component
+                  window.dispatchEvent(new Event('refreshItinerary'))
+                }}
               />
               <Button variant="outline">Edit Trip</Button>
               <ShareTripDialog tripName={trip.name}>
                 <Button variant="outline">Share</Button>
               </ShareTripDialog>
+              <DeleteTripDialog tripId={trip.id} tripName={trip.name} redirectAfterDelete={true} />
             </div>
           </div>
 

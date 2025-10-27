@@ -1,5 +1,22 @@
+import { db } from './firebase'
+import {
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  Timestamp,
+  serverTimestamp,
+} from 'firebase/firestore'
+
 export interface Trip {
   id: string
+  userId: string
   name: string
   destination: string
   startDate: string
@@ -9,90 +26,139 @@ export interface Trip {
   status: "upcoming" | "ongoing" | "completed"
   imageUrl: string
   preferences?: string
+  createdAt?: any
+  updatedAt?: any
 }
 
-const TRIPS_STORAGE_KEY = "new-life-trips"
+const TRIPS_COLLECTION = 'trips'
 
-const defaultTrips: Trip[] = [
-  {
-    id: "1",
-    name: "Tokyo Adventure",
-    destination: "Tokyo, Japan",
-    startDate: "2025-06-15",
-    endDate: "2025-06-25",
-    travelers: 2,
-    budget: 5000,
-    status: "upcoming",
-    imageUrl: "/trips/tokyo-skyline.jpg",
-  },
-  {
-    id: "2",
-    name: "Bali Retreat",
-    destination: "Bali, Indonesia",
-    startDate: "2025-08-01",
-    endDate: "2025-08-14",
-    travelers: 4,
-    budget: 3500,
-    status: "upcoming",
-    imageUrl: "/trips/bali-beach.jpg",
-  },
-]
-
-export function getTrips(): Trip[] {
-  if (typeof window === "undefined") return defaultTrips
-
-  const stored = localStorage.getItem(TRIPS_STORAGE_KEY)
-  if (!stored) {
-    localStorage.setItem(TRIPS_STORAGE_KEY, JSON.stringify(defaultTrips))
-    return defaultTrips
+export async function getTrips(userId: string): Promise<Trip[]> {
+  try {
+    const tripsRef = collection(db, TRIPS_COLLECTION)
+    const q = query(
+      tripsRef,
+      where('userId', '==', userId)
+    )
+    const querySnapshot = await getDocs(q)
+    
+    const trips: Trip[] = []
+    querySnapshot.forEach((doc) => {
+      trips.push({ id: doc.id, ...doc.data() } as Trip)
+    })
+    
+    // Sort by createdAt on the client side
+    trips.sort((a, b) => {
+      const aTime = a.createdAt?.seconds || 0
+      const bTime = b.createdAt?.seconds || 0
+      return bTime - aTime
+    })
+    
+    return trips
+  } catch (error) {
+    console.error('Error fetching trips:', error)
+    return []
   }
-  return JSON.parse(stored)
 }
 
-export function getTripById(id: string): Trip | undefined {
-  const trips = getTrips()
-  return trips.find((trip) => trip.id === id)
-}
-
-export function createTrip(tripData: Omit<Trip, "id" | "status">): Trip {
-  const trips = getTrips()
-
-  const newTrip: Trip = {
-    ...tripData,
-    id: Date.now().toString(),
-    status: "upcoming",
-    imageUrl: tripData.imageUrl || "/trips/tokyo-skyline.jpg",
+export async function getTripById(id: string, userId: string): Promise<Trip | null> {
+  try {
+    const tripRef = doc(db, TRIPS_COLLECTION, id)
+    const tripSnap = await getDoc(tripRef)
+    
+    if (tripSnap.exists()) {
+      const tripData = { id: tripSnap.id, ...tripSnap.data() } as Trip
+      // Verify the trip belongs to the user
+      if (tripData.userId === userId) {
+        return tripData
+      }
+    }
+    return null
+  } catch (error) {
+    console.error('Error fetching trip:', error)
+    return null
   }
-
-  trips.push(newTrip)
-  localStorage.setItem(TRIPS_STORAGE_KEY, JSON.stringify(trips))
-
-  window.dispatchEvent(new Event("storage"))
-
-  return newTrip
 }
 
-export function updateTrip(id: string, updates: Partial<Trip>): Trip | null {
-  const trips = getTrips()
-  const index = trips.findIndex((trip) => trip.id === id)
+export async function createTrip(
+  userId: string,
+  tripData: Omit<Trip, 'id' | 'userId' | 'status' | 'createdAt' | 'updatedAt'>
+): Promise<Trip> {
+  try {
+    const newTripData = {
+      ...tripData,
+      userId,
+      status: 'upcoming' as const,
+      imageUrl: tripData.imageUrl || '/trips/tokyo-skyline.jpg',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    }
 
-  if (index === -1) return null
-
-  trips[index] = { ...trips[index], ...updates }
-  localStorage.setItem(TRIPS_STORAGE_KEY, JSON.stringify(trips))
-
-  return trips[index]
+    const docRef = await addDoc(collection(db, TRIPS_COLLECTION), newTripData)
+    
+    return {
+      id: docRef.id,
+      ...newTripData,
+    } as Trip
+  } catch (error) {
+    console.error('Error creating trip:', error)
+    throw new Error('Failed to create trip')
+  }
 }
 
-export function deleteTrip(id: string): boolean {
-  const trips = getTrips()
-  const filtered = trips.filter((trip) => trip.id !== id)
+export async function updateTrip(
+  id: string,
+  userId: string,
+  updates: Partial<Omit<Trip, 'id' | 'userId' | 'createdAt'>>
+): Promise<boolean> {
+  try {
+    const tripRef = doc(db, TRIPS_COLLECTION, id)
+    const tripSnap = await getDoc(tripRef)
+    
+    if (!tripSnap.exists()) return false
+    
+    const tripData = tripSnap.data() as Trip
+    if (tripData.userId !== userId) return false
+    
+    await updateDoc(tripRef, {
+      ...updates,
+      updatedAt: serverTimestamp(),
+    })
+    
+    return true
+  } catch (error) {
+    console.error('Error updating trip:', error)
+    return false
+  }
+}
 
-  if (filtered.length === trips.length) return false
-
-  localStorage.setItem(TRIPS_STORAGE_KEY, JSON.stringify(filtered))
-
-  window.dispatchEvent(new Event("storage"))
-
-  return true
+export async function deleteTrip(id: string, userId: string): Promise<boolean> {
+  try {
+    const tripRef = doc(db, TRIPS_COLLECTION, id)
+    const tripSnap = await getDoc(tripRef)
+    
+    if (!tripSnap.exists()) return false
+    
+    const tripData = tripSnap.data() as Trip
+    if (tripData.userId !== userId) return false
+    
+    // Delete the trip
+    await deleteDoc(tripRef)
+    
+    // Also delete the associated itinerary if it exists
+    try {
+      const itineraryRef = doc(db, 'itineraries', id)
+      const itinerarySnap = await getDoc(itineraryRef)
+      if (itinerarySnap.exists()) {
+        await deleteDoc(itineraryRef)
+      }
+    } catch (itineraryError) {
+      // Log but don't fail the trip deletion if itinerary deletion fails
+      console.warn('Error deleting itinerary:', itineraryError)
+    }
+    
+    return true
+  } catch (error) {
+    console.error('Error deleting trip:', error)
+    return false
+  }
 }
