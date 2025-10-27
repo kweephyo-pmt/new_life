@@ -1,11 +1,80 @@
-import { Compass, User, MapPin, Calendar, Settings, LogOut } from "lucide-react"
+'use client'
+
+import { Compass, User, MapPin, Calendar, Settings, LogOut, Mail, Edit2 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { toast } from "sonner"
+import { updateProfile } from "firebase/auth"
+import { MainNav } from "@/components/main-nav"
 
 export default function ProfilePage() {
+  const { user, logout } = useAuth()
+  const router = useRouter()
+  const [isEditing, setIsEditing] = useState(false)
+  const [displayName, setDisplayName] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/login')
+    } else {
+      setDisplayName(user.displayName || '')
+    }
+  }, [user, router])
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      toast.success('Logged out successfully')
+      router.push('/')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to log out')
+    }
+  }
+
+  const handleUpdateProfile = async () => {
+    if (!user) return
+    setLoading(true)
+    try {
+      await updateProfile(user, {
+        displayName: displayName,
+      })
+      toast.success('Profile updated successfully!')
+      setIsEditing(false)
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update profile')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    )
+  }
+
+  const initials = user.displayName
+    ?.split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase() || user.email?.[0].toUpperCase() || 'U'
+
+  const memberSince = user.metadata.creationTime
+    ? new Date(user.metadata.creationTime).getFullYear()
+    : new Date().getFullYear()
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -15,20 +84,7 @@ export default function ProfilePage() {
             <Compass className="w-8 h-8 text-primary" />
             <span className="text-2xl font-bold text-foreground">New Life</span>
           </Link>
-          <nav className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/explore">Explore</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/trips">My Trips</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/discover">Discover</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/community">Community</Link>
-            </Button>
-          </nav>
+          <MainNav />
         </div>
       </header>
 
@@ -40,35 +96,32 @@ export default function ProfilePage() {
             <CardContent className="pt-6">
               <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                 <Avatar className="w-24 h-24">
-                  <AvatarImage src="/profile/user-avatar.jpg" />
-                  <AvatarFallback className="text-2xl">JD</AvatarFallback>
+                  <AvatarImage src={user.photoURL || undefined} />
+                  <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 text-center md:text-left">
-                  <h1 className="text-3xl font-bold text-foreground mb-2">John Doe</h1>
-                  <p className="text-muted-foreground mb-4">
-                    Travel enthusiast exploring the world one destination at a time
-                  </p>
+                  <h1 className="text-3xl font-bold text-foreground mb-2">{user.displayName || 'User'}</h1>
+                  <div className="flex items-center gap-2 justify-center md:justify-start text-muted-foreground mb-4">
+                    <Mail className="w-4 h-4" />
+                    <span>{user.email}</span>
+                  </div>
                   <div className="flex flex-wrap gap-4 justify-center md:justify-start text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      <span>12 Countries Visited</span>
-                    </div>
-                    <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
-                      <span>5 Upcoming Trips</span>
+                      <span>Member since {memberSince}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4" />
-                      <span>Member since 2024</span>
+                      <span>{user.emailVerified ? 'Verified' : 'Not verified'}</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Settings
+                  <Button variant="outline" size="sm" onClick={() => setIsEditing(!isEditing)}>
+                    <Edit2 className="w-4 h-4 mr-2" />
+                    Edit Profile
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={handleLogout}>
                     <LogOut className="w-4 h-4 mr-2" />
                     Logout
                   </Button>
@@ -148,32 +201,58 @@ export default function ProfilePage() {
                 <CardHeader>
                   <CardTitle>Account Settings</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-foreground">Email</label>
-                    <input
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
                       type="email"
-                      className="w-full mt-1 px-3 py-2 border border-border rounded-md bg-background"
-                      defaultValue="john.doe@example.com"
+                      value={user.email || ''}
+                      disabled
+                      className="bg-muted"
                     />
+                    <p className="text-xs text-muted-foreground">Email cannot be changed</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-foreground">Display Name</label>
-                    <input
+                  <div className="space-y-2">
+                    <Label htmlFor="displayName">Display Name</Label>
+                    <Input
+                      id="displayName"
                       type="text"
-                      className="w-full mt-1 px-3 py-2 border border-border rounded-md bg-background"
-                      defaultValue="John Doe"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      disabled={!isEditing}
+                      placeholder="Enter your name"
                     />
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-foreground">Bio</label>
-                    <textarea
-                      className="w-full mt-1 px-3 py-2 border border-border rounded-md bg-background"
-                      rows={3}
-                      defaultValue="Travel enthusiast exploring the world one destination at a time"
+                  <div className="space-y-2">
+                    <Label>Account Provider</Label>
+                    <Input
+                      value={user.providerData[0]?.providerId === 'google.com' ? 'Google' : 'Email/Password'}
+                      disabled
+                      className="bg-muted"
                     />
                   </div>
-                  <Button>Save Changes</Button>
+                  <div className="space-y-2">
+                    <Label>Account Status</Label>
+                    <Input
+                      value={user.emailVerified ? 'Verified' : 'Not Verified'}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                  {isEditing && (
+                    <div className="flex gap-2">
+                      <Button onClick={handleUpdateProfile} disabled={loading}>
+                        {loading ? 'Saving...' : 'Save Changes'}
+                      </Button>
+                      <Button variant="outline" onClick={() => {
+                        setIsEditing(false)
+                        setDisplayName(user.displayName || '')
+                      }}>
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

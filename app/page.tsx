@@ -1,34 +1,64 @@
+'use client'
+
 import type React from "react"
 import { Compass, Sparkles, MapPin, DollarSign, Users, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { MainNav } from "@/components/main-nav"
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/navigation"
 
 export default function HomePage() {
+  const { user } = useAuth()
+  const router = useRouter()
+
+  const handleGetStarted = () => {
+    if (user) {
+      router.push('/trips')
+    } else {
+      router.push('/signup')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="NewLifeLOGO.png" alt="logo" className="w-15 h-15" />
+            <img src='NewLifeLOGO.png' alt='logo' className="w-15 h-15"/>
             <span className="text-2xl font-bold text-foreground">New Life</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
-            <Link href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Features
-            </Link>
-            <Link
-              href="#how-it-works"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              How It Works
-            </Link>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/profile">Sign In</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link href="/explore">Get Started</Link>
-            </Button>
+            {!user && (
+              <>
+                <Link href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Features
+                </Link>
+                <Link
+                  href="#how-it-works"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  How It Works
+                </Link>
+                <Link href="/discover" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Discover
+                </Link>
+                <Link href="/community" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Community
+                </Link>
+              </>
+            )}
+            {user ? (
+              <MainNav />
+            ) : (
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/login">Sign In</Link>
+                </Button>
+                <Button size="sm" onClick={handleGetStarted}>Get Started</Button>
+              </>
+            )}
           </nav>
         </div>
       </header>
@@ -50,8 +80,8 @@ export default function HomePage() {
             adventures with friends—all in one beautiful app.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="text-lg px-8" asChild>
-              <Link href="/explore">Start Exploring</Link>
+            <Button size="lg" className="text-lg px-8" onClick={handleGetStarted}>
+              {user ? 'Go to My Trips' : 'Start Exploring'}
             </Button>
             <Button size="lg" variant="outline" className="text-lg px-8 bg-transparent">
               Watch Demo
@@ -110,8 +140,8 @@ export default function HomePage() {
           <p className="text-lg text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
             Join thousands of travelers who are planning smarter with New Life
           </p>
-          <Button size="lg" variant="secondary" className="text-lg px-8">
-            Get Started Free
+          <Button size="lg" variant="secondary" className="text-lg px-8" onClick={handleGetStarted}>
+            {user ? 'View My Trips' : 'Get Started Free'}
           </Button>
         </div>
       </section>
@@ -121,7 +151,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <img src="NewLifeLOGO.png" alt="logo" className="w-15 h-15" />
+              <img src='NewLifeLOGO.png' alt='logo' className="w-15 h-15"/>
               <span className="font-bold text-foreground">New Life</span>
             </div>
             <p className="text-sm text-muted-foreground">© 2025 New Life. Your AI travel companion.</p>

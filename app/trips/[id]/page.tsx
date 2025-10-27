@@ -1,7 +1,6 @@
-"use client"
+'use client'
 
-import { useEffect, useState } from "react"
-import { Calendar, MapPin, Users, DollarSign } from "lucide-react"
+import { Compass, Calendar, MapPin, Users, DollarSign } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -10,17 +9,32 @@ import { GenerateItineraryButton } from "@/components/generate-itinerary-button"
 import { ShareTripDialog } from "@/components/share-trip-dialog"
 import { BudgetOptimizer } from "@/components/budget-optimizer"
 import { OptimalTiming } from "@/components/optimal-timing"
-import { AppHeader } from "@/components/app-header"
-import { getTripById, type Trip } from "@/lib/trips-storage"
-import { DeleteTripDialog } from "@/components/delete-trip-dialog"
+import { MainNav } from "@/components/main-nav"
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export default function TripDetailPage({ params }: { params: { id: string } }) {
-  const [trip, setTrip] = useState<Trip | null>(null)
+  const { user, loading } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
-    const loadedTrip = getTripById(params.id)
-    setTrip(loadedTrip || null)
-  }, [params.id])
+    if (!loading && !user) {
+      router.push('/login')
+    }
+  }, [user, loading, router])
+
+  // Mock trip data
+  const trip = {
+    id: params.id,
+    name: "Tokyo Adventure",
+    destination: "Tokyo, Japan",
+    startDate: "2025-06-15",
+    endDate: "2025-06-25",
+    travelers: 2,
+    budget: 5000,
+    imageUrl: "/trips/tokyo-skyline.jpg",
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
@@ -31,25 +45,30 @@ export default function TripDetailPage({ params }: { params: { id: string } }) {
     return `${days} days`
   }
 
-  if (!trip) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <AppHeader />
-        <main className="container mx-auto px-4 py-8">
-          <div className="max-w-5xl mx-auto text-center">
-            <h1 className="text-2xl font-bold text-foreground mb-4">Trip not found</h1>
-            <Button asChild>
-              <Link href="/trips">Back to My Trips</Link>
-            </Button>
-          </div>
-        </main>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     )
   }
 
+  if (!user) {
+    return null
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader />
+      {/* Header */}
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <Compass className="w-8 h-8 text-primary" />
+            <span className="text-2xl font-bold text-foreground">New Life</span>
+          </Link>
+          <MainNav />
+        </div>
+      </header>
 
       {/* Hero Section */}
       <div className="relative h-64 bg-muted overflow-hidden">
@@ -95,7 +114,6 @@ export default function TripDetailPage({ params }: { params: { id: string } }) {
               <ShareTripDialog tripName={trip.name}>
                 <Button variant="outline">Share</Button>
               </ShareTripDialog>
-              <DeleteTripDialog tripId={trip.id} tripName={trip.name} redirectAfterDelete={true} />
             </div>
           </div>
 
