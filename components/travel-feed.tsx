@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Heart, MessageCircle, Share2, Bookmark, MapPin, MoreVertical, Loader2, Trash2, Pencil, Send } from "lucide-react"
 import { getAllPosts, getSavedPosts, toggleLike, toggleSave, deletePost, addComment, getComments, deleteComment, type Post as FirestorePost, type Comment } from "@/lib/posts-storage"
+import { onSnapshot, collection, query, orderBy, type QuerySnapshot, type DocumentData } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 import { EditPostDialog } from "@/components/edit-post-dialog"
 import { useAuth } from "@/contexts/AuthContext"
 import { Timestamp } from "firebase/firestore"
@@ -67,7 +69,16 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
 
   useEffect(() => {
     loadPosts()
-  }, [user])
+    
+    // Set up real-time listener for posts
+    const unsubscribe = setupRealtimeListener()
+    
+    return () => {
+      if (unsubscribe) {
+        unsubscribe()
+      }
+    }
+  }, [user, filterSaved])
 
   // Cleanup effect to ensure body is scrollable
   useEffect(() => {
@@ -99,22 +110,75 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
     }
   }
 
+  const setupRealtimeListener = () => {
+    if (!user) return
+    
+    const postsRef = collection(db, 'posts')
+    const q = query(postsRef, orderBy('createdAt', 'desc'))
+    
+    const unsubscribe = onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
+      const updatedPosts: Post[] = []
+      snapshot.forEach((doc) => {
+        const data = doc.data()
+        updatedPosts.push({
+          id: doc.id,
+          ...data,
+        } as Post)
+      })
+      
+      // Filter for saved posts if needed
+      const finalPosts = filterSaved && user
+        ? updatedPosts.filter(post => post.savedBy?.includes(user.uid))
+        : updatedPosts
+      
+      setPosts(finalPosts)
+      setLoading(false)
+    })
+    
+    return unsubscribe
+  }
+
   const handleToggleLike = async (postId: string) => {
     if (!user) return
     
-    const success = await toggleLike(postId, user.uid)
-    if (success) {
-      await loadPosts()
-    }
+    // Optimistically update UI
+    setPosts(prevPosts => prevPosts.map(post => {
+      if (post.id === postId) {
+        const isLiked = post.likedBy.includes(user.uid)
+        return {
+          ...post,
+          likes: isLiked ? post.likes - 1 : post.likes + 1,
+          likedBy: isLiked 
+            ? post.likedBy.filter(id => id !== user.uid)
+            : [...post.likedBy, user.uid]
+        }
+      }
+      return post
+    }))
+    
+    // Update in background
+    await toggleLike(postId, user.uid)
   }
 
   const handleToggleSave = async (postId: string) => {
     if (!user) return
     
-    const success = await toggleSave(postId, user.uid)
-    if (success) {
-      await loadPosts()
-    }
+    // Optimistically update UI
+    setPosts(prevPosts => prevPosts.map(post => {
+      if (post.id === postId) {
+        const isSaved = post.savedBy.includes(user.uid)
+        return {
+          ...post,
+          savedBy: isSaved 
+            ? post.savedBy.filter(id => id !== user.uid)
+            : [...post.savedBy, user.uid]
+        }
+      }
+      return post
+    }))
+    
+    // Update in background
+    await toggleSave(postId, user.uid)
   }
 
   const handleEditClick = (post: Post) => {
