@@ -40,8 +40,9 @@ export function RealtimeItinerary({ tripId, isPublicView = false }: { tripId: st
     if (!isPublicView && !user) return
     setLoading(true)
     try {
-      // For public view, we don't need userId, for authenticated view we do
-      const userId = user?.uid || ''
+      // For public view, always pass empty userId to bypass ownership check
+      // For authenticated owner view, pass their userId
+      const userId = isPublicView ? '' : (user?.uid || '')
       console.log('Loading itinerary for tripId:', tripId, 'userId:', userId, 'isPublicView:', isPublicView)
       const days = await getItinerary(tripId, userId)
       console.log('Loaded itinerary days:', days.length)
