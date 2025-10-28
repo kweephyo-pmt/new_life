@@ -35,18 +35,6 @@ export default function HomePage() {
                 <Link href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   Features
                 </Link>
-                <Link
-                  href="#how-it-works"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  How It Works
-                </Link>
-                <Link href="/discover" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Discover
-                </Link>
-                <Link href="/community" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Community
-                </Link>
               </>
             )}
             {user ? (
