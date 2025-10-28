@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getTripById, type Trip } from '@/lib/trips-storage'
 import { RealtimeItinerary } from '@/components/realtime-itinerary'
 import { useAuth } from '@/contexts/AuthContext'
+import { MainNav } from '@/components/main-nav'
 
 export default function PublicTripPage() {
   const params = useParams()
@@ -72,27 +73,18 @@ export default function PublicTripPage() {
             <Logo />
             <span className="text-2xl font-bold text-foreground">New Life</span>
           </Link>
-          <div className="flex gap-2">
-            {user ? (
-              <>
-                <Link href="/trips">
-                  <Button variant="ghost">My Trips</Button>
-                </Link>
-                <Link href="/profile">
-                  <Button>Profile</Button>
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link href="/login">
-                  <Button variant="ghost">Sign In</Button>
-                </Link>
-                <Link href="/signup">
-                  <Button>Get Started</Button>
-                </Link>
-              </>
-            )}
-          </div>
+          {user ? (
+            <MainNav />
+          ) : (
+            <div className="flex gap-2">
+              <Link href="/login">
+                <Button variant="ghost">Sign In</Button>
+              </Link>
+              <Link href="/signup">
+                <Button>Get Started</Button>
+              </Link>
+            </div>
+          )}
         </div>
       </header>
 
