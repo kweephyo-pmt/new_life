@@ -182,34 +182,43 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
             )}
           </div>
 
-          <Tabs defaultValue="itinerary" className="space-y-4 sm:space-y-6">
-            <TabsList className="grid w-full grid-cols-3 h-auto">
-              <TabsTrigger value="itinerary" className="text-xs sm:text-sm px-2 sm:px-4 py-2">
-                <span className="hidden sm:inline">Real-Time Itinerary</span>
-                <span className="sm:hidden">Itinerary</span>
-              </TabsTrigger>
-              <TabsTrigger value="budget" className="text-xs sm:text-sm px-2 sm:px-4 py-2">
-                <span className="hidden sm:inline">Budget Optimizer</span>
-                <span className="sm:hidden">Budget</span>
-              </TabsTrigger>
-              <TabsTrigger value="timing" className="text-xs sm:text-sm px-2 sm:px-4 py-2">
-                <span className="hidden sm:inline">Optimal Timing</span>
-                <span className="sm:hidden">Timing</span>
-              </TabsTrigger>
-            </TabsList>
+          {isOwner ? (
+            <Tabs defaultValue="itinerary" className="space-y-4 sm:space-y-6">
+              <TabsList className="grid w-full grid-cols-3 h-auto">
+                <TabsTrigger value="itinerary" className="text-xs sm:text-sm px-2 sm:px-4 py-2">
+                  <span className="hidden sm:inline">Real-Time Itinerary</span>
+                  <span className="sm:hidden">Itinerary</span>
+                </TabsTrigger>
+                <TabsTrigger value="budget" className="text-xs sm:text-sm px-2 sm:px-4 py-2">
+                  <span className="hidden sm:inline">Budget Optimizer</span>
+                  <span className="sm:hidden">Budget</span>
+                </TabsTrigger>
+                <TabsTrigger value="timing" className="text-xs sm:text-sm px-2 sm:px-4 py-2">
+                  <span className="hidden sm:inline">Optimal Timing</span>
+                  <span className="sm:hidden">Timing</span>
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="itinerary" className="overflow-visible">
+              <TabsContent value="itinerary" className="overflow-visible">
+                <RealtimeItinerary tripId={trip.id} />
+              </TabsContent>
+
+              <TabsContent value="budget" className="overflow-visible">
+                <BudgetOptimizer tripId={trip.id} totalBudget={trip.budget} />
+              </TabsContent>
+
+              <TabsContent value="timing" className="overflow-visible">
+                <OptimalTiming destination={trip.destination} startDate={trip.startDate} endDate={trip.endDate} />
+              </TabsContent>
+            </Tabs>
+          ) : (
+            <div className="space-y-4 sm:space-y-6">
+              <div className="flex items-center gap-3 mb-6">
+                <h2 className="text-2xl font-bold text-foreground">Itinerary</h2>
+              </div>
               <RealtimeItinerary tripId={trip.id} />
-            </TabsContent>
-
-            <TabsContent value="budget" className="overflow-visible">
-              <BudgetOptimizer tripId={trip.id} totalBudget={trip.budget} />
-            </TabsContent>
-
-            <TabsContent value="timing" className="overflow-visible">
-              <OptimalTiming destination={trip.destination} startDate={trip.startDate} endDate={trip.endDate} />
-            </TabsContent>
-          </Tabs>
+            </div>
+          )}
         </div>
       </main>
     </div>

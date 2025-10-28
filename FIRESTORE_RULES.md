@@ -5,9 +5,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Trips collection rules
     match /trips/{tripId} {
-      // Allow users to read their own trips
-      allow read: if request.auth != null && 
-                     request.auth.uid == resource.data.userId;
+      // Allow anyone to read trips (for public sharing)
+      // This enables shared trip links to work
+      allow read: if true;
       
       // Allow users to create trips with their own userId
       allow create: if request.auth != null && 
@@ -24,10 +24,9 @@ service cloud.firestore {
     
     // Itineraries collection rules
     match /itineraries/{itineraryId} {
-      // Allow users to read their own itineraries
-      // Also allow read if document doesn't exist (for checking before create)
-      allow read: if request.auth != null && 
-                     (resource == null || request.auth.uid == resource.data.userId);
+      // Allow anyone to read itineraries (for public trip sharing)
+      // This enables shared trip links to show itineraries
+      allow read: if true;
       
       // Allow users to create itineraries with their own userId
       allow create: if request.auth != null && 
