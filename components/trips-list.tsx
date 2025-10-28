@@ -106,18 +106,23 @@ export function TripsList() {
 
   if (trips.length === 0) {
     return (
-      <Card className="p-12 text-center">
+      <Card className="p-12 sm:p-16 text-center border-dashed border-2">
         <div className="max-w-md mx-auto">
-          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-            <MapPin className="w-8 h-8 text-muted-foreground" />
+          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
+            <MapPin className="w-10 h-10 text-primary" />
           </div>
-          <h3 className="text-xl font-semibold text-foreground mb-2">No trips yet</h3>
-          <p className="text-muted-foreground mb-6">
-            Start planning your next adventure with AI-powered recommendations
+          <h3 className="text-2xl font-bold text-foreground mb-3">No trips yet</h3>
+          <p className="text-base text-muted-foreground mb-8">
+            Start planning your next adventure with AI-powered recommendations and personalized itineraries
           </p>
-          <Button asChild>
-            <Link href="/explore">Explore Destinations</Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button size="lg" asChild>
+              <Link href="/explore">
+                <MapPin className="w-5 h-5 mr-2" />
+                Explore Destinations
+              </Link>
+            </Button>
+          </div>
         </div>
       </Card>
     )
@@ -132,42 +137,42 @@ export function TripsList() {
           </div>
 
           <Link href={`/trips/${trip.id}`}>
-            <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-md bg-card group/card">
-              <div className="relative h-56 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+            <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border border-border/50 shadow-sm hover:border-primary/30 bg-card group/card">
+              <div className="relative h-48 sm:h-56 bg-gradient-to-br from-primary/5 to-primary/10 overflow-hidden">
                 {(() => {
                   const photoUrl = trip.imageUrl && !trip.imageUrl.startsWith('/trips/') ? trip.imageUrl : getDestinationPhoto(trip.destination)
                   return photoUrl ? (
                     <img
                       src={photoUrl}
                       alt={trip.name}
-                      className="w-full h-full object-cover object-center group-hover/card:scale-105 transition-transform duration-700 ease-out"
+                      className="w-full h-full object-cover object-center group-hover/card:scale-110 transition-transform duration-700 ease-out"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none'
                       }}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <MapPin className="w-16 h-16 text-muted-foreground/30" />
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+                      <MapPin className="w-12 h-12 text-primary/40" />
+                      <span className="text-sm font-medium text-muted-foreground">{trip.destination}</span>
                     </div>
                   )
                 })()}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <h3 className="text-xl font-bold text-white drop-shadow-lg">
+                    {trip.name}
+                  </h3>
+                  <p className="text-sm text-white/90 drop-shadow">
+                    {trip.destination}
+                  </p>
+                </div>
               </div>
               <div className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground mb-1 group-hover/card:text-primary transition-colors">
-                      {trip.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {trip.destination}
-                    </p>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-2xl font-bold text-foreground">
+                    ฿{trip.budget.toLocaleString()}
                   </div>
                   <ChevronRight className="w-5 h-5 text-muted-foreground group-hover/card:text-primary group-hover/card:translate-x-1 transition-all" />
-                </div>
-                
-                <div className="text-2xl font-bold text-foreground mb-4">
-                  ฿{trip.budget.toLocaleString()}
                 </div>
 
                 <div className="space-y-2 mb-4">

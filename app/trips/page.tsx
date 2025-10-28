@@ -1,6 +1,6 @@
 'use client'
 
-import { Plus } from "lucide-react"
+import { Plus, Sparkles, MapPin } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { TripsList } from "@/components/trips-list"
@@ -46,22 +46,34 @@ export default function TripsPage() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">My Trips</h1>
-              <p className="text-muted-foreground">Plan and manage your travel adventures</p>
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-background border-b overflow-hidden">
+        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,transparent,black)]" />
+        <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-16 relative">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
+              <Sparkles className="w-4 h-4" />
+              <span>AI-Powered Travel Planning</span>
             </div>
+            <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+              My Trips
+            </h1>
+            <p className="text-base sm:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Create, manage, and share your personalized travel itineraries with AI assistance
+            </p>
             <CreateTripDialog>
-              <Button size="lg">
+              <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow">
                 <Plus className="w-5 h-5 mr-2" />
-                New Trip
+                Create New Trip
               </Button>
             </CreateTripDialog>
           </div>
+        </div>
+      </div>
 
+      {/* Main Content */}
+      <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="max-w-6xl mx-auto">
           <TripsList />
         </div>
       </main>

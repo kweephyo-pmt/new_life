@@ -24,11 +24,13 @@ export async function GET(request: NextRequest) {
       return Response.json({ error: 'GOOGLE_PLACES_API_KEY not configured' }, { status: 500 })
     }
 
-    // Step 1: Search for famous landmarks/tourist attractions
+    // Step 1: Search for famous landmarks/tourist attractions with better prompts
     const searchQueries = [
-      `${destination} most famous landmark`,
-      `${destination} iconic monument`,
-      `${destination} main tourist attraction`,
+      `${destination} iconic landmark skyline`,
+      `${destination} famous tourist attraction`,
+      `${destination} most photographed place`,
+      `${destination} city landmark`,
+      `${destination} main attraction`,
     ]
     
     let place = null
@@ -46,13 +48,27 @@ export async function GET(request: NextRequest) {
         for (const p of searchData.results) {
           if (!p.photos || p.photos.length === 0) continue
           
-          // Calculate score: rating * log(reviews) * photo_count
+          // Calculate score with better weighting
           const rating = p.rating || 0
           const reviews = p.user_ratings_total || 0
           const photoCount = p.photos.length
           
-          // Prioritize places with high ratings and many reviews
-          const score = rating * Math.log10(reviews + 1) * Math.min(photoCount, 5)
+          // Prioritize places with:
+          // - High ratings (4.0+)
+          // - Many reviews (indicates popularity)
+          // - Multiple photos (indicates photo-worthy)
+          // - Bonus for "landmark" or "monument" in types
+          let score = rating * Math.log10(reviews + 10) * Math.min(photoCount, 10)
+          
+          // Boost score if it's a landmark or monument
+          if (p.types?.includes('landmark') || p.types?.includes('monument') || p.types?.includes('point_of_interest')) {
+            score *= 1.5
+          }
+          
+          // Boost if name contains destination (more likely to be THE landmark)
+          if (p.name?.toLowerCase().includes(destination.toLowerCase())) {
+            score *= 1.3
+          }
           
           if (score > highestScore) {
             highestScore = score
