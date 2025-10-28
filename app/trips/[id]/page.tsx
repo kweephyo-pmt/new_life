@@ -208,7 +208,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
             </TabsList>
 
             <TabsContent value="itinerary" className="overflow-visible">
-              <RealtimeItinerary tripId={trip.id} isPublicView={!user} />
+              <RealtimeItinerary tripId={trip.id} isPublicView={!user || trip.userId !== user.uid} />
             </TabsContent>
 
             <TabsContent value="budget" className="overflow-visible">
