@@ -27,7 +27,24 @@ export default function SignupPage() {
       toast.success('Account created successfully!')
       router.push('/trips')
     } catch (error: any) {
-      toast.error(error.message || 'Failed to create account')
+      console.error('Signup error:', error)
+      
+      // Handle specific Firebase auth errors
+      let errorMessage = 'Failed to create account'
+      
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'An account with this email already exists. Please sign in instead.'
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address. Please check and try again.'
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak. Please use at least 6 characters.'
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your internet connection.'
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -40,7 +57,23 @@ export default function SignupPage() {
       toast.success('Successfully signed in with Google!')
       router.push('/trips')
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in with Google')
+      console.error('Google sign-in error:', error)
+      
+      let errorMessage = 'Failed to sign in with Google'
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Sign-in cancelled. Please try again.'
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = 'Pop-up blocked. Please allow pop-ups for this site.'
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your internet connection.'
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = 'An account already exists with this email using a different sign-in method.'
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }

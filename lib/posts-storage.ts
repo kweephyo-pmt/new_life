@@ -260,16 +260,20 @@ export async function addComment(
   photoURL?: string
 ): Promise<boolean> {
   try {
-    const commentData = {
+    const commentData: any = {
       postId,
       userId,
       author: {
         name: authorName,
-        username: authorUsername,
-        photoURL: photoURL || undefined
+        username: authorUsername
       },
       content,
       timestamp: Timestamp.now()
+    }
+    
+    // Only add photoURL if it exists
+    if (photoURL) {
+      commentData.author.photoURL = photoURL
     }
     
     await addDoc(collection(db, 'comments'), commentData)
