@@ -67,8 +67,9 @@ export async function getTripById(id: string, userId: string): Promise<Trip | nu
     
     if (tripSnap.exists()) {
       const tripData = { id: tripSnap.id, ...tripSnap.data() } as Trip
-      // Verify the trip belongs to the user
-      if (tripData.userId === userId) {
+      // If userId is empty (public access), return the trip
+      // Otherwise, verify the trip belongs to the user
+      if (!userId || tripData.userId === userId) {
         return tripData
       }
     }
