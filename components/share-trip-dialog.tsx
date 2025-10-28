@@ -93,20 +93,10 @@ export function ShareTripDialog({ children, tripName, tripId }: { children: Reac
           {/* Privacy Settings */}
           <div className="space-y-2">
             <Label>Privacy</Label>
-            <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-              <option value="public">Public - Anyone can view</option>
-              <option value="friends">Friends only</option>
-              <option value="private">Private - Only me</option>
-            </select>
+            <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm items-center text-muted-foreground">
+              Anyone with the link can view
+            </div>
           </div>
-
-          {/* Message */}
-          <div className="space-y-2">
-            <Label>Add a message (optional)</Label>
-            <Textarea placeholder="Share your thoughts about this trip..." rows={3} />
-          </div>
-
-          <Button className="w-full">Share Trip</Button>
         </div>
       </DialogContent>
     </Dialog>
