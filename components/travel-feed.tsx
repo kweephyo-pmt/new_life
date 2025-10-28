@@ -372,14 +372,30 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
             )}
           </div>
 
+          {/* Post Content - Show before image if no image */}
+          {(!post.images || post.images.length === 0 || !post.images[0]) && (
+            <div className="px-4 sm:px-5 py-3 border-b border-border/50">
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-2">
+                <MapPin className="w-4 h-4 text-primary" />
+                <span className="font-medium">{post.location}</span>
+              </div>
+              <p className="text-sm sm:text-base text-foreground leading-relaxed">
+                <span className="font-semibold">{post.author.name}</span>{" "}
+                <span className="text-muted-foreground">{post.content}</span>
+              </p>
+            </div>
+          )}
+
           {/* Post Image */}
-          <div className="relative aspect-square sm:aspect-[4/3] bg-muted overflow-hidden">
-            <img 
-              src={post.images[0] || "/placeholder.svg"} 
-              alt={post.content} 
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
-            />
-          </div>
+          {post.images && post.images.length > 0 && post.images[0] && (
+            <div className="relative aspect-square sm:aspect-[4/3] bg-muted overflow-hidden">
+              <img 
+                src={post.images[0]} 
+                alt={post.content} 
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
+              />
+            </div>
+          )}
 
           {/* Post Actions */}
           <div className="p-4 sm:p-5">
@@ -423,17 +439,19 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
               </button>
             </div>
 
-            {/* Post Content */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <MapPin className="w-4 h-4 text-primary" />
-                <span className="font-medium">{post.location}</span>
+            {/* Post Content - Only show for posts with images */}
+            {post.images && post.images.length > 0 && post.images[0] && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  <span className="font-medium">{post.location}</span>
+                </div>
+                <p className="text-sm sm:text-base text-foreground leading-relaxed">
+                  <span className="font-semibold">{post.author.name}</span>{" "}
+                  <span className="text-muted-foreground">{post.content}</span>
+                </p>
               </div>
-              <p className="text-sm sm:text-base text-foreground leading-relaxed">
-                <span className="font-semibold">{post.author.name}</span>{" "}
-                <span className="text-muted-foreground">{post.content}</span>
-              </p>
-            </div>
+            )}
 
             {/* Comments Section */}
             {showComments[post.id] && (
