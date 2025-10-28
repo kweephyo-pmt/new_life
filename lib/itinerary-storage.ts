@@ -42,23 +42,29 @@ const ITINERARIES_COLLECTION = 'itineraries'
  */
 export async function getItinerary(tripId: string, userId: string): Promise<ItineraryDay[]> {
   try {
+    console.log('getItinerary called with tripId:', tripId, 'userId:', userId)
     const itineraryRef = doc(db, ITINERARIES_COLLECTION, tripId)
     const itinerarySnap = await getDoc(itineraryRef)
     
+    console.log('Itinerary exists:', itinerarySnap.exists())
+    
     if (itinerarySnap.exists()) {
       const data = itinerarySnap.data() as Itinerary
-      // Verify ownership
-      if (data.userId === userId) {
+      console.log('Itinerary data userId:', data.userId, 'Days count:', data.days?.length || 0)
+      // If userId is empty (public access), return the itinerary
+      // Otherwise, verify ownership
+      if (!userId || data.userId === userId) {
+        console.log('Returning itinerary days:', data.days?.length || 0)
         return data.days || []
+      } else {
+        console.log('User ID mismatch - not returning itinerary')
       }
     }
     // Return empty array if document doesn't exist (not an error)
+    console.log('Returning empty array')
     return []
   } catch (error) {
-    // Only log if it's not a permission error for non-existent document
-    if (error instanceof Error && !error.message.includes('Missing or insufficient permissions')) {
-      console.error('Error fetching itinerary:', error)
-    }
+    console.error('Error fetching itinerary:', error)
     // Return empty array - this is normal for new trips without itineraries
     return []
   }

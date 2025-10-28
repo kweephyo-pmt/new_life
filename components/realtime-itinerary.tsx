@@ -42,7 +42,9 @@ export function RealtimeItinerary({ tripId, isPublicView = false }: { tripId: st
     try {
       // For public view, we don't need userId, for authenticated view we do
       const userId = user?.uid || ''
+      console.log('Loading itinerary for tripId:', tripId, 'userId:', userId, 'isPublicView:', isPublicView)
       const days = await getItinerary(tripId, userId)
+      console.log('Loaded itinerary days:', days.length)
       setItinerary(days)
     } catch (error) {
       console.error('Error loading itinerary:', error)
@@ -146,7 +148,10 @@ export function RealtimeItinerary({ tripId, isPublicView = false }: { tripId: st
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-2">No itinerary yet</h3>
             <p className="text-muted-foreground mb-6">
-              Generate an AI-powered itinerary for your trip using the button above
+              {isPublicView 
+                ? "This trip doesn't have an itinerary yet. Create your own AI-powered trip to get started!"
+                : "Generate an AI-powered itinerary for your trip using the button above"
+              }
             </p>
           </div>
         </Card>
