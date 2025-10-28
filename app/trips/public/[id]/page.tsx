@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { MapPin, Calendar, Users, DollarSign, Clock, Sparkles } from 'lucide-react'
+import { MapPin, Calendar, Users, Banknote, Clock, Sparkles } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -168,8 +168,8 @@ export default function PublicTripPage() {
             
             <div className="bg-card rounded-xl border border-border p-4 hover:shadow-md transition-shadow">
               <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <DollarSign className="w-4 h-4 text-primary" />
-                <span className="text-xs font-medium uppercase tracking-wide">Budget</span>
+                <Banknote className="w-4 h-4 text-primary" />
+                <span className="text-xs font-medium uppercase tracking-wide">Budget (THB)</span>
               </div>
               <p className="text-lg font-bold text-foreground">
                 ฿{trip.budget.toLocaleString()}
