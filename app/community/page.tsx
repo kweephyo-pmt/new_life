@@ -51,39 +51,56 @@ export default function CommunityPage() {
       </header>
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-b from-primary/5 to-background border-b">
-        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-2 flex items-center gap-2">
-                  <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-                  Travel Community
-                </h1>
-                <p className="text-sm sm:text-lg text-muted-foreground">Share your adventures and get inspired by fellow travelers</p>
-              </div>
-              <CreatePostDialog onPostCreated={() => setRefreshKey(prev => prev + 1)} />
+      <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-background border-b overflow-hidden">
+        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,transparent,black)]" />
+        <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 relative">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
+              <Sparkles className="w-4 h-4" />
+              <span>Connect with travelers worldwide</span>
             </div>
+            <h1 className="text-3xl sm:text-5xl font-bold text-foreground mb-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+              Travel Community
+            </h1>
+            <p className="text-base sm:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Share your adventures, discover hidden gems, and connect with fellow travelers from around the world
+            </p>
+            <CreatePostDialog onPostCreated={() => setRefreshKey(prev => prev + 1)} />
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-        <div className="max-w-7xl mx-auto">
-          <Tabs defaultValue="feed" className="space-y-4 sm:space-y-6">
-            <div className="flex justify-center mb-4 sm:mb-6">
-              <TabsList className="grid w-full max-w-3xl grid-cols-2 h-10 sm:h-12">
-                <TabsTrigger value="feed" className="text-base sm:text-lg">Feed</TabsTrigger>
-                <TabsTrigger value="saved" className="text-base sm:text-lg">Saved</TabsTrigger>
+      <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="max-w-4xl mx-auto">
+          <Tabs defaultValue="feed" className="space-y-8">
+            {/* Tabs Navigation */}
+            <div className="flex justify-center">
+              <TabsList className="inline-flex h-12 items-center justify-center rounded-xl bg-muted p-1 text-muted-foreground shadow-sm">
+                <TabsTrigger 
+                  value="feed" 
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Feed
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="saved"
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                >
+                  <Bookmark className="w-4 h-4 mr-2" />
+                  Saved
+                </TabsTrigger>
               </TabsList>
             </div>
 
-            <TabsContent value="feed" className="space-y-6">
+            {/* Feed Content */}
+            <TabsContent value="feed" className="mt-0 space-y-6">
               <TravelFeed key={refreshKey} />
             </TabsContent>
 
-            <TabsContent value="saved">
+            {/* Saved Content */}
+            <TabsContent value="saved" className="mt-0 space-y-6">
               <TravelFeed key={`saved-${refreshKey}`} filterSaved={true} />
             </TabsContent>
           </Tabs>

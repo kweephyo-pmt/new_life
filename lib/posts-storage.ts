@@ -10,7 +10,8 @@ import {
   orderBy,
   Timestamp,
   increment,
-  getDoc
+  getDoc,
+  onSnapshot
 } from 'firebase/firestore'
 import { db } from './firebase'
 
@@ -384,5 +385,121 @@ export async function getSavedPosts(userId: string): Promise<Post[]> {
   } catch (error) {
     console.error('Error getting saved posts:', error)
     return []
+  }
+}
+
+// Real-time listener for posts
+export function setupPostsListener(
+  callback: (posts: Post[]) => void,
+  filterSaved: boolean = false,
+  userId?: string
+) {
+  try {
+    const postsRef = collection(db, 'posts')
+    let q = query(postsRef, orderBy('timestamp', 'desc'))
+    
+    if (filterSaved && userId) {
+      q = query(postsRef, where('savedBy', 'array-contains', userId), orderBy('timestamp', 'desc'))
+    }
+    
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const posts: Post[] = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as Post))
+      
+      // Enrich posts with user profile data
+      const enrichedPosts = await Promise.all(
+        posts.map(async (post) => {
+          try {
+            const userProfileDoc = await getDoc(doc(db, 'userProfiles', post.userId))
+            if (userProfileDoc.exists()) {
+              const profile = userProfileDoc.data()
+              return {
+                ...post,
+                author: {
+                  ...post.author,
+                  name: profile.displayName || post.author.name,
+                  username: profile.username || post.author.username,
+                  photoURL: profile.photoURL || undefined
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching user profile:', error)
+          }
+          return post
+        })
+      )
+      
+      callback(enrichedPosts)
+    }, (error) => {
+      console.error('Error in posts listener:', error)
+    })
+    
+    return unsubscribe
+  } catch (error) {
+    console.error('Error setting up posts listener:', error)
+    return undefined
+  }
+}
+
+// Real-time listener for comments on a specific post
+export function setupCommentsListener(
+  postId: string,
+  callback: (comments: Comment[]) => void
+) {
+  try {
+    const commentsRef = collection(db, 'comments')
+    const q = query(
+      commentsRef,
+      where('postId', '==', postId),
+      orderBy('timestamp', 'asc')
+    )
+    
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const comments: Comment[] = []
+      
+      for (const docSnap of snapshot.docs) {
+        const commentData = docSnap.data()
+        
+        // Enrich with user profile data
+        try {
+          const userProfileDoc = await getDoc(doc(db, 'userProfiles', commentData.userId))
+          if (userProfileDoc.exists()) {
+            const profile = userProfileDoc.data()
+            comments.push({
+              id: docSnap.id,
+              ...commentData,
+              author: {
+                name: profile.displayName || commentData.author.name,
+                username: profile.username || commentData.author.username,
+                photoURL: profile.photoURL || undefined
+              }
+            } as Comment)
+          } else {
+            comments.push({
+              id: docSnap.id,
+              ...commentData
+            } as Comment)
+          }
+        } catch (error) {
+          console.error('Error fetching user profile for comment:', error)
+          comments.push({
+            id: docSnap.id,
+            ...commentData
+          } as Comment)
+        }
+      }
+      
+      callback(comments)
+    }, (error) => {
+      console.error('Error in comments listener:', error)
+    })
+    
+    return unsubscribe
+  } catch (error) {
+    console.error('Error setting up comments listener:', error)
+    return undefined
   }
 }
