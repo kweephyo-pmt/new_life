@@ -151,19 +151,19 @@ export function EditProfileDialog({
           Edit Profile
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Edit Profile</DialogTitle>
+      <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[85vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="pb-3 sm:pb-4">
+          <DialogTitle className="text-base sm:text-xl">Edit Profile</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           {/* Profile Picture */}
-          <div className="flex flex-col items-center gap-4 pb-4 border-b">
+          <div className="flex flex-col items-center gap-3 sm:gap-4 pb-3 sm:pb-4 border-b">
             <div className="relative">
-              <Avatar className="w-24 h-24 ring-4 ring-background shadow-lg">
+              <Avatar className="w-20 h-20 sm:w-24 sm:h-24 ring-2 sm:ring-4 ring-background shadow-lg">
                 {photoURL ? (
                   <AvatarImage src={photoURL} alt={displayName} className="object-cover" />
                 ) : null}
-                <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                <AvatarFallback className="bg-primary text-primary-foreground text-xl sm:text-2xl">
                   {displayName.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
@@ -209,9 +209,9 @@ export function EditProfileDialog({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="displayName">
-              <User className="w-4 h-4 inline mr-1" />
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="displayName" className="text-sm">
+              <User className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
               Display Name *
             </Label>
             <Input
@@ -220,11 +220,12 @@ export function EditProfileDialog({
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Your name"
               required
+              className="text-sm sm:text-base"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="username">Username *</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="username" className="text-sm">Username *</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
               <Input
@@ -233,29 +234,29 @@ export function EditProfileDialog({
                 onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                 placeholder="username"
                 required
-                className="pl-8"
+                className="pl-8 text-sm sm:text-base"
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="bio" className="text-sm">Bio</Label>
             <Textarea
               id="bio"
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               placeholder="Tell us about yourself..."
-              rows={3}
-              className="resize-none"
+              rows={2}
+              className="resize-none text-sm sm:text-base"
             />
             <p className="text-xs text-muted-foreground">
               {bio.length}/200 characters
             </p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="location">
-              <MapPin className="w-4 h-4 inline mr-1" />
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="location" className="text-sm">
+              <MapPin className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
               Location
             </Label>
             <Input
@@ -263,12 +264,13 @@ export function EditProfileDialog({
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="e.g., Bangkok, Thailand"
+              className="text-sm sm:text-base"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="website">
-              <Globe className="w-4 h-4 inline mr-1" />
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="website" className="text-sm">
+              <Globe className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
               Website
             </Label>
             <Input
@@ -277,10 +279,11 @@ export function EditProfileDialog({
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
               placeholder="https://yourwebsite.com"
+              className="text-sm sm:text-base"
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex justify-end gap-2 pt-3 sm:pt-4">
             <Button
               type="button"
               variant="outline"

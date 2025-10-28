@@ -138,12 +138,12 @@ export function CreateTripDialog({ children, initialData }: CreateTripDialogProp
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">Create New Trip</DialogTitle>
+      <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="pb-3 sm:pb-4">
+          <DialogTitle className="text-base sm:text-2xl">Create New Trip</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-6 mt-2 sm:mt-4">
           <div className="space-y-2">
             <Label htmlFor="trip-name">Trip Name</Label>
             <Input

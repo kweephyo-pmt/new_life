@@ -242,18 +242,18 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
 
   if (posts.length === 0) {
     return (
-      <Card className="p-12 text-center">
+      <Card className="p-8 sm:p-12 text-center">
         {filterSaved ? (
           <>
-            <Bookmark className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No saved posts yet</h3>
-            <p className="text-muted-foreground">Bookmark posts to save them for later</p>
+            <Bookmark className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">No saved posts yet</h3>
+            <p className="text-sm sm:text-base text-muted-foreground">Bookmark posts to save them for later</p>
           </>
         ) : (
           <>
-            <MessageCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No posts yet</h3>
-            <p className="text-muted-foreground">Be the first to share your travel story!</p>
+            <MessageCircle className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">No posts yet</h3>
+            <p className="text-sm sm:text-base text-muted-foreground">Be the first to share your travel story!</p>
           </>
         )}
       </Card>
@@ -261,11 +261,11 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {posts.map((post) => (
         <Card key={post.id} className="overflow-hidden">
           {/* Post Header */}
-          <div className="p-4 flex items-center justify-between">
+          <div className="p-3 sm:p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Avatar className="w-10 h-10">
                 {post.author.photoURL ? (
@@ -276,8 +276,8 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-semibold text-foreground">{post.author.name}</p>
-                <p className="text-sm text-muted-foreground">@{post.author.username}</p>
+                <p className="text-sm sm:text-base font-semibold text-foreground">{post.author.name}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">@{post.author.username}</p>
               </div>
             </div>
             {user && post.userId === user.uid && (
@@ -310,40 +310,40 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
           </div>
 
           {/* Post Actions */}
-          <div className="p-4">
+          <div className="p-3 sm:p-4">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-4">
-                <button onClick={() => handleToggleLike(post.id)} className="flex items-center gap-2 group">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <button onClick={() => handleToggleLike(post.id)} className="flex items-center gap-1 sm:gap-2 group">
                   <Heart
-                    className={`w-6 h-6 transition-colors ${user && post.likedBy?.includes(user.uid) ? "fill-destructive text-destructive" : "text-foreground group-hover:text-destructive"}`}
+                    className={`w-5 h-5 sm:w-6 sm:h-6 transition-colors ${user && post.likedBy?.includes(user.uid) ? "fill-destructive text-destructive" : "text-foreground group-hover:text-destructive"}`}
                   />
-                  <span className="text-sm font-medium text-foreground">{post.likes}</span>
+                  <span className="text-xs sm:text-sm font-medium text-foreground">{post.likes}</span>
                 </button>
-                <button onClick={() => toggleComments(post.id)} className="flex items-center gap-2 group">
-                  <MessageCircle className="w-6 h-6 text-foreground group-hover:text-primary transition-colors" />
-                  <span className="text-sm font-medium text-foreground">{post.comments}</span>
+                <button onClick={() => toggleComments(post.id)} className="flex items-center gap-1 sm:gap-2 group">
+                  <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-foreground group-hover:text-primary transition-colors" />
+                  <span className="text-xs sm:text-sm font-medium text-foreground">{post.comments}</span>
                 </button>
-                <button className="flex items-center gap-2 group">
-                  <Share2 className="w-6 h-6 text-foreground group-hover:text-primary transition-colors" />
+                <button className="flex items-center gap-1 sm:gap-2 group">
+                  <Share2 className="w-5 h-5 sm:w-6 sm:h-6 text-foreground group-hover:text-primary transition-colors" />
                 </button>
               </div>
               <button onClick={() => handleToggleSave(post.id)}>
                 <Bookmark
-                  className={`w-6 h-6 transition-colors ${user && post.savedBy?.includes(user.uid) ? "fill-primary text-primary" : "text-foreground hover:text-primary"}`}
+                  className={`w-5 h-5 sm:w-6 sm:h-6 transition-colors ${user && post.savedBy?.includes(user.uid) ? "fill-primary text-primary" : "text-foreground hover:text-primary"}`}
                 />
               </button>
             </div>
 
             {/* Post Content */}
             <div className="space-y-2">
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <MapPin className="w-4 h-4" />
+              <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+                <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>{post.location}</span>
               </div>
-              <p className="text-foreground leading-relaxed">
+              <p className="text-sm sm:text-base text-foreground leading-relaxed">
                 <span className="font-semibold">{post.author.name}</span> {post.content}
               </p>
-              <p className="text-sm text-muted-foreground">{formatTimestamp(post.timestamp)}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">{formatTimestamp(post.timestamp)}</p>
             </div>
 
             {/* Comments Section */}

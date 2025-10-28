@@ -122,30 +122,31 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="w-4 h-4" />
-          Create Post
+          <span className="hidden sm:inline">Create Post</span>
+          <span className="sm:hidden">Post</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Share Your Travel Story</DialogTitle>
+      <DialogContent className="w-[95vw] sm:max-w-[600px] max-h-[85vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="pb-3 sm:pb-4">
+          <DialogTitle className="text-base sm:text-xl">Share Your Travel Story</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="content">What's on your mind?</Label>
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="content" className="text-sm">What's on your mind?</Label>
             <Textarea
               id="content"
               placeholder="Share your travel experience..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              rows={4}
+              rows={3}
               required
-              className="resize-none"
+              className="resize-none text-sm sm:text-base"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="location">
-              <MapPin className="w-4 h-4 inline mr-1" />
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="location" className="text-sm">
+              <MapPin className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
               Location
             </Label>
             <Input
@@ -157,9 +158,9 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>
-              <ImageIcon className="w-4 h-4 inline mr-1" />
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label className="text-sm">
+              <ImageIcon className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
               Image (optional)
             </Label>
             
@@ -221,7 +222,7 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
             )}
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex justify-end gap-2 pt-3 sm:pt-4">
             <Button
               type="button"
               variant="outline"

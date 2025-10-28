@@ -72,27 +72,27 @@ export function EditPostDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Edit Post</DialogTitle>
+      <DialogContent className="w-[95vw] sm:max-w-[600px] max-h-[85vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="pb-3 sm:pb-4">
+          <DialogTitle className="text-base sm:text-xl">Edit Post</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="content">Content</Label>
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="content" className="text-sm">Content</Label>
             <Textarea
               id="content"
               placeholder="Share your travel experience..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              rows={4}
+              rows={3}
               required
-              className="resize-none"
+              className="resize-none text-sm sm:text-base"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="location">
-              <MapPin className="w-4 h-4 inline mr-1" />
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="location" className="text-sm">
+              <MapPin className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
               Location
             </Label>
             <Input
@@ -104,7 +104,7 @@ export function EditPostDialog({
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex justify-end gap-2 pt-3 sm:pt-4">
             <Button
               type="button"
               variant="outline"
