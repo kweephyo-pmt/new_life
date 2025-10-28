@@ -58,58 +58,65 @@ The plan supports both **manual and automated testing**.
 
 
 **User Story:**  
-_As a traveler, I want to sign up and log in securely so that I can access my saved itineraries and preferences._
-
-**Preconditions:**  
-User has access to the internet and the app’s login page.
+_As a traveler, I want to sign up and log in securely so that I can access my saved trips and itineraries._
 
 | Test ID | Scenario | Steps | Expected Result |
 |----------|-----------|--------|-----------------|
-| UA-001 | (Happy Path) Successful login | 1. Navigate to login page.<br>2. Enter valid email and password.<br>3. Click **Login**. | Dashboard loads successfully; user info displayed. |
-| UA-002 | (Sad Path) Invalid password | Enter wrong password and click **Login**. | Error message “Invalid credentials” appears; login denied. |
-| UA-003 | (Sad Path) Empty fields | Leave both fields blank, click **Login**. | Error “Email and password required” displayed. |
+| **UA-001** | (Happy Path) Successful login | 1. Go to Login.<br>2. Enter valid email + password.<br>3. Click Login. | Dashboard loads; user info shown. |
+| **UA-002** | (Sad Path) Invalid password | Enter wrong password; click Login. | Error “Invalid credentials.” |
+| **UA-003** | (Sad Path) Empty fields | Leave fields blank; click Login. | Error “Email and password required.” |
+| **UA-004** | (Happy Path) Signup | Enter new email + password and submit. | Account created; redirect to dashboard. |
+| **UA-005** | (Sad Path) Duplicate email | Try to sign up with existing email. | Error “Email already registered.” |
 
 ---
 
-## 3. **Feature : AI Trip Planner**
+## 3. Feature: Trip Creation
 
 **User Story:**  
-_As a traveler, I want to input my destination and dates to generate an AI-based itinerary, so I can plan efficiently._
-
-**Preconditions:**  
-User logged in; API connected to AI model.
+_As a traveler, I want to create a trip with destination, dates, budget, and preferences so that I can later view and generate an AI itinerary within that trip page._
 
 | Test ID | Scenario | Steps | Expected Result |
 |----------|-----------|--------|-----------------|
-| TP-001 | (Happy Path) Generate AI itinerary | 1. Enter destination “Tokyo”.<br>2. Set travel dates.<br>3. Click **Generate Plan**. | AI returns itinerary with activities, weather, and local tips. |
-| TP-002 | (Sad Path) Missing input fields | Leave destination blank, click **Generate**. | Error “Destination is required” displayed. |
-| TP-003 | (Edge Case) Long destination name | Input destination > 50 characters. | Validation prevents submission; message prompts shorter entry. |
+| **TC-001** | (Happy Path) Successful trip creation | 1. Click My Trips → Create New Trip.<br>2. Fill out Trip Name, Destination, Dates, Travelers, and Budget.<br>3. Click Create Trip. | Trip is created successfully and displayed under “My Trips.” |
+| **TC-002** | (Sad Path) Missing destination | Leave Destination blank → Click Create Trip. | Error message “Destination is required.” |
+| **TC-003** | (Sad Path) Invalid date range | Enter End Date before Start Date. | Validation error “End date must be after start date.” |
+| **TC-004** | (Sad Path) Empty Trip Name | Leave Trip Name blank. | Validation “Trip name required.” |
+| **TC-005** | (Edge Case) Invalid budget format | Input text “one thousand.” | Error “Budget must be numeric.” |
+| **TC-006** | (Edge Case) Large budget input | Enter 1,000,000 THB. | Field handles large value successfully. |
+| **TC-007** | (UI Check) Responsive modal | Open on mobile device. | Layout adjusts properly; no clipping. |
 
 ---
 
-## 4. **Feature : Budget Optimization**
+## 4. Feature: AI Itinerary Generation (Inside Created Trip)
 
 **User Story:**  
-_As a traveler, I want the app to suggest trips based on my budget so I can make cost-effective decisions._
+_As a traveler, I want to generate an AI itinerary directly from within a created trip so I can view tailored activities based on my selected trip’s data._
+
+**Precondition:**  
+User is logged in and has already created a trip (e.g., “Chiangrai”).
 
 | Test ID | Scenario | Steps | Expected Result |
 |----------|-----------|--------|-----------------|
-| BO-001 | (Happy Path) Apply budget | Input “Budget = $1000”, click **Optimize**. | System displays list of hotels, flights, and activities under budget. |
-| BO-002 | (Sad Path) Non-numeric budget | Enter “One thousand” and click **Optimize**. | Error “Budget must be a number” displayed. |
-| BO-003 | (Edge Case) Very low budget | Enter $1 and click **Optimize**. | Message: “No trips available within this range.” |
+| **AI-001** | (Happy Path) Generate itinerary from trip page | 1. Open My Trips → Click a Trip (e.g., Chiangrai).<br>2. Click Generate AI Itinerary. | AI itinerary is generated using the trip details (destination, dates, budget). |
+| **AI-002** | (Sad Path) AI service unavailable | Click Generate AI Itinerary when API is down. | Error message “Service temporarily unavailable.” |
+| **AI-003** | (Edge Case) Very long trip duration | Trip spans 30+ days. | AI response loads within acceptable time (< 60 seconds). |
+| **AI-004** | (UI Check) Progress and completion | Observe button/loading states. | “Generating…” indicator shown; replaced by results when done. |
+| **AI-005** | (Usability) Regenerate plan | Click Generate AI Itinerary again after generation. | Existing plan replaced or updated. |
+| **AI-006** | (Edge Case) Missing trip data | If trip data incomplete (e.g., no destination). | Prompt user to edit trip before generating. |
 
 ---
 
-## 5. **Feature : Itinerary Viewer**
+## 5. Feature: Budget Optimization
 
 **User Story:**  
-_As a traveler, I want to view my generated itinerary day by day so I can visualize my plan._
+_As a traveler, I want to see suggestions that fit my budget._
 
 | Test ID | Scenario | Steps | Expected Result |
 |----------|-----------|--------|-----------------|
-| IV-001 | (Happy Path) View itinerary | After generating plan, open itinerary tab. | Displays daily activities, time slots, and map locations. |
-| IV-002 | (Sad Path) No itinerary available | Access itinerary without generating one. | Message “No itinerary found. Please generate first.” |
-| IV-003 | (UI Check) Responsive layout | Open itinerary on mobile view. | Layout adjusts without clipping or scroll issues. |
+| **BO-001** | (Happy Path) Apply budget | Input budget = “50,000 THB”, click Optimize. | Shows list of hotels, flights under budget. |
+| **BO-002** | (Sad Path) Non-numeric budget | Enter text value. | Error “Budget must be a number.” |
+| **BO-003** | (Edge Case) Low budget | Enter 1 THB. | “No trips available in this range.” |
+| **BO-004** | (UI Check) Responsive form | Resize screen to mobile. | Budget and result cards display well. |
 
 ---
 
