@@ -120,13 +120,40 @@ _As a traveler, I want to see suggestions that fit my budget._
 
 ---
 
-## 6. **Feature : Feedback & Save Trip**
+## 6. Feature: Itinerary Viewer
 
 **User Story:**  
-_As a traveler, I want to save or share my itinerary and provide feedback for improvement._
+_As a traveler, I want to see my AI-generated itinerary day by day._
 
 | Test ID | Scenario | Steps | Expected Result |
 |----------|-----------|--------|-----------------|
-| FS-001 | (Happy Path) Save trip | Click **Save Trip** after generation. | Trip successfully stored in user profile. |
-| FS-002 | (Happy Path) Share itinerary | Click **Share Link**. | Unique shareable link generated. |
-| FS-003 | (Sad Path) Save failure (offline) | Disable internet and click **Save**. | Error “Connection lost” displayed; no data saved. |
+| **IV-001** | (Happy Path) View itinerary | After generation, open Itinerary tab. | Displays daily activities with maps/times. |
+| **IV-002** | (Sad Path) No itinerary yet | Open tab without generating plan. | “Generate plan first.” message. |
+| **IV-003** | (UI Check) Responsive view | Check on mobile. | No overflow; buttons accessible. |
+
+---
+
+## 7. Feature: Feedback & Save/Share Trip
+
+**User Story:**  
+_As a traveler, I want to save and share itineraries and provide feedback._
+
+| Test ID | Scenario | Steps | Expected Result |
+|----------|-----------|--------|-----------------|
+| **FS-001** | (Happy Path) Save trip | Click Save Trip after generation. | Trip stored in user profile. |
+| **FS-002** | (Happy Path) Share trip | Click Share Link. | Unique URL generated. |
+| **FS-003** | (Sad Path) Save offline | Disconnect internet, click Save. | Error “Connection lost.” |
+| **FS-004** | (Edge Case) Share unsaved trip | Click Share before saving. | Prompt “Please save first.” |
+| **FS-005** | (Usability) Feedback form | Submit rating + comment. | Feedback sent successfully. |
+
+---
+
+## Notes
+
+- All features are tested for **UI responsiveness**, **error handling**, and **usability feedback**.  
+- Test results can be logged using a test management tool or spreadsheet for tracking.
+
+---
+
+** Last Updated:** October 2025  
+**Author:** Travel Planner Dev Team 
