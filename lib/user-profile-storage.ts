@@ -3,6 +3,7 @@ import {
   getDoc, 
   setDoc, 
   updateDoc,
+  deleteField,
   Timestamp 
 } from 'firebase/firestore'
 import { db } from './firebase'
@@ -45,17 +46,32 @@ export async function saveUserProfile(
     const docRef = doc(db, 'userProfiles', userId)
     const docSnap = await getDoc(docRef)
     
+    // Process data to handle null values (remove fields)
+    const processedData: any = { ...data }
+    Object.keys(processedData).forEach(key => {
+      if (processedData[key] === null) {
+        processedData[key] = deleteField()
+      }
+    })
+    
     if (docSnap.exists()) {
       // Update existing profile
       await updateDoc(docRef, {
-        ...data,
+        ...processedData,
         updatedAt: Timestamp.now()
       })
     } else {
-      // Create new profile
+      // Create new profile - remove null values for new documents
+      const cleanData: any = {}
+      Object.keys(data).forEach(key => {
+        if (data[key as keyof typeof data] !== null) {
+          cleanData[key] = data[key as keyof typeof data]
+        }
+      })
+      
       await setDoc(docRef, {
         userId,
-        ...data,
+        ...cleanData,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       })

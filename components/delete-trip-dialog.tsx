@@ -63,7 +63,11 @@ export function DeleteTripDialog({ tripId, tripName, redirectAfterDelete = false
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive" size="icon">
+        <Button 
+          variant="destructive" 
+          size="icon"
+          className="h-10 w-10 hover:bg-destructive/90 transition-all"
+        >
           <Trash2 className="w-4 h-4" />
         </Button>
       </AlertDialogTrigger>

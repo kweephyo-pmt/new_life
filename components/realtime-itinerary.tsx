@@ -128,10 +128,6 @@ export function RealtimeItinerary({ tripId }: { tripId: string }) {
             </Badge>
           )}
         </div>
-        <Button variant="outline" size="sm">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Activity
-        </Button>
       </div>
 
       {/* Loading State */}

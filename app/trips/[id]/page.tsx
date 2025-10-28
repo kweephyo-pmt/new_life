@@ -14,7 +14,7 @@ import { MainNav } from "@/components/main-nav"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, use } from "react"
-import { getTripById, type Trip } from "@/lib/trips-storage"
+import { getTripById, getTripByIdPublic, type Trip } from "@/lib/trips-storage"
 import { DeleteTripDialog } from "@/components/delete-trip-dialog"
 import { EditTripDialog } from "@/components/edit-trip-dialog"
 
@@ -25,17 +25,21 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const [trip, setTrip] = useState<Trip | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login')
-    }
-  }, [user, authLoading, router])
-
   const loadTrip = async () => {
-    if (!user) return
     setLoading(true)
     try {
-      const tripData = await getTripById(id, user.uid)
+      let tripData: Trip | null = null
+      
+      if (user) {
+        // Try to load as owner first
+        tripData = await getTripById(id, user.uid)
+      }
+      
+      // If not owner or not logged in, try public access
+      if (!tripData) {
+        tripData = await getTripByIdPublic(id)
+      }
+      
       setTrip(tripData)
     } catch (error) {
       console.error('Error loading trip:', error)
@@ -45,8 +49,10 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   }
 
   useEffect(() => {
-    loadTrip()
-  }, [id, user])
+    if (!authLoading) {
+      loadTrip()
+    }
+  }, [id, user, authLoading])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
@@ -65,7 +71,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     )
   }
 
-  if (!user || !trip) {
+  if (!trip) {
     return (
       <div className="min-h-screen bg-background">
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
@@ -81,13 +87,15 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
           <div className="max-w-5xl mx-auto text-center">
             <h1 className="text-2xl font-bold text-foreground mb-4">Trip not found</h1>
             <Button asChild>
-              <Link href="/trips">Back to My Trips</Link>
+              <Link href="/">Back to Home</Link>
             </Button>
           </div>
         </main>
       </div>
     )
   }
+  
+  const isOwner = user && trip.userId === user.uid
 
   return (
     <div className="min-h-screen bg-background">
@@ -136,28 +144,42 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 sm:gap-3">
-              <GenerateItineraryButton
-                tripId={trip.id}
-                destination={trip.destination}
-                startDate={trip.startDate}
-                endDate={trip.endDate}
-                travelers={trip.travelers}
-                budget={trip.budget}
-                preferences={trip.preferences}
-                onGenerated={() => {
-                  // Trigger refresh of itinerary component
-                  window.dispatchEvent(new Event('refreshItinerary'))
-                }}
-              />
-              <EditTripDialog trip={trip} onUpdate={loadTrip}>
-                <Button variant="outline" size="sm" className="text-xs sm:text-sm">Edit Trip</Button>
-              </EditTripDialog>
-              <ShareTripDialog tripName={trip.name}>
-                <Button variant="outline" size="sm" className="text-xs sm:text-sm">Share</Button>
-              </ShareTripDialog>
-              <DeleteTripDialog tripId={trip.id} tripName={trip.name} redirectAfterDelete={true} />
-            </div>
+            {isOwner && (
+              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+                <GenerateItineraryButton
+                  tripId={trip.id}
+                  destination={trip.destination}
+                  startDate={trip.startDate}
+                  endDate={trip.endDate}
+                  travelers={trip.travelers}
+                  budget={trip.budget}
+                  preferences={trip.preferences}
+                  onGenerated={() => {
+                    // Trigger refresh of itinerary component
+                    window.dispatchEvent(new Event('refreshItinerary'))
+                  }}
+                />
+                <div className="flex gap-2 sm:gap-3">
+                  <EditTripDialog trip={trip} onUpdate={loadTrip}>
+                    <Button 
+                      variant="outline" 
+                      className="flex-1 sm:flex-none h-10 px-4 sm:px-6 font-medium border-2 hover:bg-primary/10 hover:border-primary/30 transition-all"
+                    >
+                      Edit Trip
+                    </Button>
+                  </EditTripDialog>
+                  <ShareTripDialog tripName={trip.name} tripId={trip.id}>
+                    <Button 
+                      variant="outline" 
+                      className="flex-1 sm:flex-none h-10 px-4 sm:px-6 font-medium border-2 hover:bg-primary/10 hover:border-primary/30 transition-all"
+                    >
+                      Share
+                    </Button>
+                  </ShareTripDialog>
+                  <DeleteTripDialog tripId={trip.id} tripName={trip.name} redirectAfterDelete={true} />
+                </div>
+              </div>
+            )}
           </div>
 
           <Tabs defaultValue="itinerary" className="space-y-4 sm:space-y-6">

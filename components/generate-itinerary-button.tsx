@@ -83,7 +83,11 @@ export function GenerateItineraryButton({
   }
 
   return (
-    <Button onClick={handleGenerate} disabled={loading}>
+    <Button 
+      onClick={handleGenerate} 
+      disabled={loading}
+      className="h-10 px-4 sm:px-6 font-medium hover:bg-primary/90 transition-all"
+    >
       {loading ? (
         <>
           <Loader2 className="w-4 h-4 mr-2 animate-spin" />

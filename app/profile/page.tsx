@@ -28,6 +28,7 @@ export default function ProfilePage() {
   const [bio, setBio] = useState('')
   const [location, setLocation] = useState('')
   const [website, setWebsite] = useState('')
+  const [photoURL, setPhotoURL] = useState('')
   const [trips, setTrips] = useState<Trip[]>([])
   const [allTrips, setAllTrips] = useState<Trip[]>([])
   const [tripsLoading, setTripsLoading] = useState(true)
@@ -50,6 +51,10 @@ export default function ProfilePage() {
       setBio(profile.bio || '')
       setLocation(profile.location || '')
       setWebsite(profile.website || '')
+      setPhotoURL(profile.photoURL || '')
+    } else {
+      // If no profile in Firestore, use Firebase Auth photo
+      setPhotoURL(user.photoURL || '')
     }
   }
 
@@ -140,7 +145,7 @@ export default function ProfilePage() {
             <CardContent className="pt-6">
               <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                 <Avatar className="w-24 h-24 ring-4 ring-background shadow-lg">
-                  <AvatarImage src={user.photoURL || undefined} className="object-cover" />
+                  <AvatarImage src={photoURL || undefined} className="object-cover" />
                   <AvatarFallback className="text-2xl bg-primary text-primary-foreground">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 text-center md:text-left">
@@ -173,6 +178,7 @@ export default function ProfilePage() {
                     initialBio={bio}
                     initialLocation={location}
                     initialWebsite={website}
+                    initialPhotoURL={photoURL}
                     onProfileUpdated={handleProfileUpdated}
                   />
                   <Button variant="outline" size="sm" onClick={handleLogout}>
@@ -321,6 +327,7 @@ export default function ProfilePage() {
                         initialBio={bio}
                         initialLocation={location}
                         initialWebsite={website}
+                        initialPhotoURL={photoURL}
                         onProfileUpdated={handleProfileUpdated}
                       />
                     </div>

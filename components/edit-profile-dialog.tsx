@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Edit2, Loader2, User, MapPin, Globe, Camera, X } from "lucide-react"
 import { updateProfile } from "firebase/auth"
+import { auth } from "@/lib/firebase"
 import { saveUserProfile } from "@/lib/user-profile-storage"
 import { toast } from "sonner"
 import type { User as FirebaseUser } from "firebase/auth"
@@ -20,6 +21,7 @@ interface EditProfileDialogProps {
   initialBio: string
   initialLocation: string
   initialWebsite: string
+  initialPhotoURL: string
   onProfileUpdated: () => void
 }
 
@@ -30,6 +32,7 @@ export function EditProfileDialog({
   initialBio,
   initialLocation,
   initialWebsite,
+  initialPhotoURL,
   onProfileUpdated
 }: EditProfileDialogProps) {
   const [open, setOpen] = useState(false)
@@ -38,7 +41,7 @@ export function EditProfileDialog({
   const [bio, setBio] = useState(initialBio)
   const [location, setLocation] = useState(initialLocation)
   const [website, setWebsite] = useState(initialWebsite)
-  const [photoURL, setPhotoURL] = useState(user.photoURL || '')
+  const [photoURL, setPhotoURL] = useState(initialPhotoURL)
   const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -50,9 +53,9 @@ export function EditProfileDialog({
       setBio(initialBio)
       setLocation(initialLocation)
       setWebsite(initialWebsite)
-      setPhotoURL(user.photoURL || '')
+      setPhotoURL(initialPhotoURL)
     }
-  }, [open, initialDisplayName, initialUsername, initialBio, initialLocation, initialWebsite, user.photoURL])
+  }, [open, initialDisplayName, initialUsername, initialBio, initialLocation, initialWebsite, initialPhotoURL])
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -124,13 +127,13 @@ export function EditProfileDialog({
         bio: bio.trim(),
         location: location.trim(),
         website: website.trim(),
-      }
-      
-      if (photoURL) {
-        profileData.photoURL = photoURL
+        photoURL: photoURL || null, // Explicitly set to null if empty to remove from Firestore
       }
       
       await saveUserProfile(user.uid, profileData)
+      
+      // Reload the current user to refresh the auth state
+      await auth.currentUser?.reload()
       
       toast.success('Profile updated successfully!')
       setOpen(false)

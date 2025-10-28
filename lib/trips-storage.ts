@@ -79,6 +79,22 @@ export async function getTripById(id: string, userId: string): Promise<Trip | nu
   }
 }
 
+// Get trip by ID for public viewing (no user verification)
+export async function getTripByIdPublic(id: string): Promise<Trip | null> {
+  try {
+    const tripRef = doc(db, TRIPS_COLLECTION, id)
+    const tripSnap = await getDoc(tripRef)
+    
+    if (tripSnap.exists()) {
+      return { id: tripSnap.id, ...tripSnap.data() } as Trip
+    }
+    return null
+  } catch (error) {
+    console.error('Error fetching trip:', error)
+    return null
+  }
+}
+
 export async function createTrip(
   userId: string,
   tripData: Omit<Trip, 'id' | 'userId' | 'status' | 'createdAt' | 'updatedAt'>

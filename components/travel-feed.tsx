@@ -267,17 +267,17 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
           {/* Post Header */}
           <div className="p-3 sm:p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Avatar className="w-10 h-10">
+              <Avatar className="w-10 h-10 sm:w-12 sm:h-12 ring-2 ring-background shadow-sm">
                 {post.author.photoURL ? (
-                  <AvatarImage src={post.author.photoURL} alt={post.author.name} />
+                  <AvatarImage src={post.author.photoURL} alt={post.author.name} className="object-cover" />
                 ) : null}
-                <AvatarFallback className="bg-primary text-primary-foreground">
-                  <span className="text-sm font-semibold">{post.author.avatar}</span>
+                <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
+                  <span className="text-sm sm:text-base font-semibold">{post.author.avatar}</span>
                 </AvatarFallback>
               </Avatar>
-              <div>
-                <p className="text-sm sm:text-base font-semibold text-foreground">{post.author.name}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground">@{post.author.username}</p>
+              <div className="flex flex-col">
+                <p className="text-sm sm:text-base font-semibold text-foreground leading-tight">{post.author.name}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-tight">@{post.author.username}</p>
               </div>
             </div>
             {user && post.userId === user.uid && (
@@ -351,12 +351,12 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
               <div className="mt-4 pt-4 border-t space-y-4">
                 {/* Comments List */}
                 {comments[post.id]?.map((comment) => (
-                  <div key={comment.id} className="flex gap-3">
-                    <Avatar className="w-8 h-8">
+                  <div key={comment.id} className="flex gap-2 sm:gap-3">
+                    <Avatar className="w-8 h-8 sm:w-9 sm:h-9 ring-1 ring-border shadow-sm flex-shrink-0">
                       {comment.author.photoURL ? (
                         <AvatarImage src={comment.author.photoURL} alt={comment.author.name} className="object-cover" />
                       ) : null}
-                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs">
                         {comment.author.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -382,12 +382,12 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
 
                 {/* Add Comment Input */}
                 {user && (
-                  <div className="flex gap-2">
-                    <Avatar className="w-8 h-8">
+                  <div className="flex gap-2 sm:gap-3">
+                    <Avatar className="w-8 h-8 sm:w-9 sm:h-9 ring-1 ring-border shadow-sm flex-shrink-0">
                       {user.photoURL ? (
                         <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} className="object-cover" />
                       ) : null}
-                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs">
                         {user.displayName?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
