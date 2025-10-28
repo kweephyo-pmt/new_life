@@ -8,18 +8,22 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Copy, Check, Facebook, Twitter, Mail } from "lucide-react"
+import { toast } from "sonner"
 
-export function ShareTripDialog({ children, tripName, tripId }: { children: React.ReactNode; tripName: string; tripId?: string }) {
+export function ShareTripDialog({ children, tripName, tripId }: { children: React.ReactNode; tripName: string; tripId: string }) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
-  const shareUrl = tripId 
-    ? `https://new-life-ai.vercel.app/trips/${tripId}`
-    : `https://new-life-ai.vercel.app`
+  const shareUrl = `https://new-life-ai.vercel.app/trips/public/${tripId}`
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shareUrl)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setCopied(true)
+      toast.success('Link copied to clipboard!')
+      setTimeout(() => setCopied(false), 2000)
+    } catch (error) {
+      toast.error('Failed to copy link')
+    }
   }
 
   const shareToSocial = (platform: string) => {
@@ -86,12 +90,23 @@ export function ShareTripDialog({ children, tripName, tripId }: { children: Reac
             </div>
           </div>
 
-          {/* Info Note */}
-          <div className="rounded-lg bg-muted p-3">
-            <p className="text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">Note:</span> Anyone with this link can view your trip details.
-            </p>
+          {/* Privacy Settings */}
+          <div className="space-y-2">
+            <Label>Privacy</Label>
+            <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <option value="public">Public - Anyone can view</option>
+              <option value="friends">Friends only</option>
+              <option value="private">Private - Only me</option>
+            </select>
           </div>
+
+          {/* Message */}
+          <div className="space-y-2">
+            <Label>Add a message (optional)</Label>
+            <Textarea placeholder="Share your thoughts about this trip..." rows={3} />
+          </div>
+
+          <Button className="w-full">Share Trip</Button>
         </div>
       </DialogContent>
     </Dialog>

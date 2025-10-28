@@ -14,7 +14,7 @@ import { MainNav } from "@/components/main-nav"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, use } from "react"
-import { getTripById, getTripByIdPublic, type Trip } from "@/lib/trips-storage"
+import { getTripById, type Trip } from "@/lib/trips-storage"
 import { DeleteTripDialog } from "@/components/delete-trip-dialog"
 import { EditTripDialog } from "@/components/edit-trip-dialog"
 
@@ -25,21 +25,18 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const [trip, setTrip] = useState<Trip | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Allow public viewing - don't redirect to login
+  // useEffect(() => {
+  //   if (!authLoading && !user) {
+  //     router.push('/login')
+  //   }
+  // }, [user, authLoading, router])
+
   const loadTrip = async () => {
+    // Allow loading trip even without user (for public sharing)
     setLoading(true)
     try {
-      let tripData: Trip | null = null
-      
-      if (user) {
-        // Try to load as owner first
-        tripData = await getTripById(id, user.uid)
-      }
-      
-      // If not owner or not logged in, try public access
-      if (!tripData) {
-        tripData = await getTripByIdPublic(id)
-      }
-      
+      const tripData = await getTripById(id, user?.uid || '')
       setTrip(tripData)
     } catch (error) {
       console.error('Error loading trip:', error)
@@ -49,10 +46,8 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   }
 
   useEffect(() => {
-    if (!authLoading) {
-      loadTrip()
-    }
-  }, [id, user, authLoading])
+    loadTrip()
+  }, [id, user])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
@@ -71,7 +66,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     )
   }
 
-  if (!trip) {
+  if (!user || !trip) {
     return (
       <div className="min-h-screen bg-background">
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
@@ -87,15 +82,13 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
           <div className="max-w-5xl mx-auto text-center">
             <h1 className="text-2xl font-bold text-foreground mb-4">Trip not found</h1>
             <Button asChild>
-              <Link href="/">Back to Home</Link>
+              <Link href="/trips">Back to My Trips</Link>
             </Button>
           </div>
         </main>
       </div>
     )
   }
-  
-  const isOwner = user && trip.userId === user.uid
 
   return (
     <div className="min-h-screen bg-background">
@@ -144,7 +137,8 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               </div>
             </div>
 
-            {isOwner && (
+            {user ? (
+              // Authenticated user - show all controls
               <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
                 <GenerateItineraryButton
                   tripId={trip.id}
@@ -179,46 +173,52 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                   <DeleteTripDialog tripId={trip.id} tripName={trip.name} redirectAfterDelete={true} />
                 </div>
               </div>
+            ) : (
+              // Public viewer - show CTA to sign up
+              <div className="flex flex-col gap-3 pt-4 border-t">
+                <div className="bg-primary/10 rounded-lg p-4 text-center">
+                  <p className="text-sm font-medium mb-3">Love this trip? Create your own with AI!</p>
+                  <div className="flex gap-2 justify-center">
+                    <Link href="/signup">
+                      <Button className="h-10">Get Started Free</Button>
+                    </Link>
+                    <Link href="/login">
+                      <Button variant="outline" className="h-10">Sign In</Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 
-          {isOwner ? (
-            <Tabs defaultValue="itinerary" className="space-y-4 sm:space-y-6">
-              <TabsList className="grid w-full grid-cols-3 h-auto">
-                <TabsTrigger value="itinerary" className="text-xs sm:text-sm px-2 sm:px-4 py-2">
-                  <span className="hidden sm:inline">Real-Time Itinerary</span>
-                  <span className="sm:hidden">Itinerary</span>
-                </TabsTrigger>
-                <TabsTrigger value="budget" className="text-xs sm:text-sm px-2 sm:px-4 py-2">
-                  <span className="hidden sm:inline">Budget Optimizer</span>
-                  <span className="sm:hidden">Budget</span>
-                </TabsTrigger>
-                <TabsTrigger value="timing" className="text-xs sm:text-sm px-2 sm:px-4 py-2">
-                  <span className="hidden sm:inline">Optimal Timing</span>
-                  <span className="sm:hidden">Timing</span>
-                </TabsTrigger>
-              </TabsList>
+          <Tabs defaultValue="itinerary" className="space-y-4 sm:space-y-6">
+            <TabsList className="grid w-full grid-cols-3 h-auto">
+              <TabsTrigger value="itinerary" className="text-xs sm:text-sm px-2 sm:px-4 py-2">
+                <span className="hidden sm:inline">Real-Time Itinerary</span>
+                <span className="sm:hidden">Itinerary</span>
+              </TabsTrigger>
+              <TabsTrigger value="budget" className="text-xs sm:text-sm px-2 sm:px-4 py-2">
+                <span className="hidden sm:inline">Budget Optimizer</span>
+                <span className="sm:hidden">Budget</span>
+              </TabsTrigger>
+              <TabsTrigger value="timing" className="text-xs sm:text-sm px-2 sm:px-4 py-2">
+                <span className="hidden sm:inline">Optimal Timing</span>
+                <span className="sm:hidden">Timing</span>
+              </TabsTrigger>
+            </TabsList>
 
-              <TabsContent value="itinerary" className="overflow-visible">
-                <RealtimeItinerary tripId={trip.id} />
-              </TabsContent>
+            <TabsContent value="itinerary" className="overflow-visible">
+              <RealtimeItinerary tripId={trip.id} isPublicView={!user} />
+            </TabsContent>
 
-              <TabsContent value="budget" className="overflow-visible">
-                <BudgetOptimizer tripId={trip.id} totalBudget={trip.budget} />
-              </TabsContent>
+            <TabsContent value="budget" className="overflow-visible">
+              <BudgetOptimizer tripId={trip.id} totalBudget={trip.budget} />
+            </TabsContent>
 
-              <TabsContent value="timing" className="overflow-visible">
-                <OptimalTiming destination={trip.destination} startDate={trip.startDate} endDate={trip.endDate} />
-              </TabsContent>
-            </Tabs>
-          ) : (
-            <div className="space-y-4 sm:space-y-6">
-              <div className="flex items-center gap-3 mb-6">
-                <h2 className="text-2xl font-bold text-foreground">Itinerary</h2>
-              </div>
-              <RealtimeItinerary tripId={trip.id} />
-            </div>
-          )}
+            <TabsContent value="timing" className="overflow-visible">
+              <OptimalTiming destination={trip.destination} startDate={trip.startDate} endDate={trip.endDate} />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
     </div>

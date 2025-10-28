@@ -26,7 +26,7 @@ interface Activity {
   liveUpdate?: string
 }
 
-export function RealtimeItinerary({ tripId }: { tripId: string }) {
+export function RealtimeItinerary({ tripId, isPublicView = false }: { tripId: string; isPublicView?: boolean }) {
   const { user } = useAuth()
   const [itinerary, setItinerary] = useState<ItineraryDay[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,10 +36,13 @@ export function RealtimeItinerary({ tripId }: { tripId: string }) {
 
   // Load itinerary from Firestore
   const loadItinerary = async () => {
-    if (!user) return
+    // Allow loading for public view or authenticated users
+    if (!isPublicView && !user) return
     setLoading(true)
     try {
-      const days = await getItinerary(tripId, user.uid)
+      // For public view, we don't need userId, for authenticated view we do
+      const userId = user?.uid || ''
+      const days = await getItinerary(tripId, userId)
       setItinerary(days)
     } catch (error) {
       console.error('Error loading itinerary:', error)

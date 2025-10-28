@@ -6,7 +6,6 @@ service cloud.firestore {
     // Trips collection rules
     match /trips/{tripId} {
       // Allow anyone to read trips (for public sharing)
-      // This enables shared trip links to work
       allow read: if true;
       
       // Allow users to create trips with their own userId
@@ -25,7 +24,6 @@ service cloud.firestore {
     // Itineraries collection rules
     match /itineraries/{itineraryId} {
       // Allow anyone to read itineraries (for public trip sharing)
-      // This enables shared trip links to show itineraries
       allow read: if true;
       
       // Allow users to create itineraries with their own userId
