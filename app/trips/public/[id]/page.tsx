@@ -10,10 +10,12 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getTripById, type Trip } from '@/lib/trips-storage'
 import { RealtimeItinerary } from '@/components/realtime-itinerary'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function PublicTripPage() {
   const params = useParams()
   const tripId = params.id as string
+  const { user } = useAuth()
   const [trip, setTrip] = useState<Trip | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -71,12 +73,25 @@ export default function PublicTripPage() {
             <span className="text-2xl font-bold text-foreground">New Life</span>
           </Link>
           <div className="flex gap-2">
-            <Link href="/login">
-              <Button variant="ghost">Sign In</Button>
-            </Link>
-            <Link href="/signup">
-              <Button>Get Started</Button>
-            </Link>
+            {user ? (
+              <>
+                <Link href="/trips">
+                  <Button variant="ghost">My Trips</Button>
+                </Link>
+                <Link href="/profile">
+                  <Button>Profile</Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost">Sign In</Button>
+                </Link>
+                <Link href="/signup">
+                  <Button>Get Started</Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -132,9 +147,9 @@ export default function PublicTripPage() {
             )}
 
             <div className="flex gap-3 pt-4 border-t">
-              <Link href="/signup" className="flex-1">
+              <Link href={user ? "/trips" : "/signup"} className="flex-1">
                 <Button className="w-full">
-                  Create Your Own Trip
+                  {user ? "Go to My Trips" : "Create Your Own Trip"}
                 </Button>
               </Link>
             </div>
@@ -146,20 +161,22 @@ export default function PublicTripPage() {
           </Card>
 
           {/* CTA Section */}
-          <Card className="p-8 text-center mt-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-            <h2 className="text-2xl font-bold mb-2">Love this trip?</h2>
-            <p className="text-muted-foreground mb-6">
-              Create your own AI-powered travel itinerary with New Life
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Link href="/signup">
-                <Button size="lg">Get Started Free</Button>
-              </Link>
-              <Link href="/">
-                <Button size="lg" variant="outline">Learn More</Button>
-              </Link>
-            </div>
-          </Card>
+          {!user && (
+            <Card className="p-8 text-center mt-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+              <h2 className="text-2xl font-bold mb-2">Love this trip?</h2>
+              <p className="text-muted-foreground mb-6">
+                Create your own AI-powered travel itinerary with New Life
+              </p>
+              <div className="flex gap-3 justify-center">
+                <Link href="/signup">
+                  <Button size="lg">Get Started Free</Button>
+                </Link>
+                <Link href="/">
+                  <Button size="lg" variant="outline">Learn More</Button>
+                </Link>
+              </div>
+            </Card>
+          )}
         </div>
       </main>
 
