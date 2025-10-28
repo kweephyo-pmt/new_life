@@ -1,6 +1,6 @@
 'use client'
 
-import { Calendar, MapPin, Users, DollarSign } from "lucide-react"
+import { Calendar, MapPin, Users, DollarSign, Clock, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { Logo } from "@/components/logo"
 import { Button } from "@/components/ui/button"
@@ -104,42 +104,95 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
       </header>
 
       {/* Hero Section */}
-      <div className="relative h-48 sm:h-64 bg-muted overflow-hidden">
-        <img src={trip.imageUrl || "/placeholder.svg"} alt={trip.name} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+      <div className="relative h-64 sm:h-80 md:h-96 bg-gradient-to-br from-primary/5 to-primary/10 overflow-hidden">
+        {trip.imageUrl && trip.imageUrl !== '/placeholder.svg' ? (
+          <img 
+            src={trip.imageUrl} 
+            alt={trip.name} 
+            className="w-full h-full object-cover object-center" 
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <MapPin className="w-24 h-24 text-primary/30" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+          <div className="container mx-auto max-w-5xl">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-sm font-medium mb-3">
+              <Sparkles className="w-4 h-4" />
+              <span className="uppercase tracking-wide">{trip.status}</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 drop-shadow-lg">
+              {trip.name}
+            </h1>
+            <div className="flex flex-wrap gap-4 text-white/90">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-5 h-5" />
+                <span className="font-medium">{trip.destination}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                <span>{getDuration(trip.startDate, trip.endDate)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-3 sm:px-4 -mt-16 sm:-mt-20 relative z-10">
+      <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-12">
         <div className="max-w-5xl mx-auto">
-          {/* Trip Header */}
-          <div className="bg-card rounded-xl sm:rounded-2xl border border-border p-4 sm:p-8 mb-6 sm:mb-8 shadow-lg">
-            <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-3 sm:mb-4">{trip.name}</h1>
-
-            <div className="flex flex-wrap gap-3 sm:gap-6 text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                <span>{trip.destination}</span>
+          {/* Trip Info Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-card rounded-xl border border-border p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <Calendar className="w-4 h-4 text-primary" />
+                <span className="text-xs font-medium uppercase tracking-wide">Dates</span>
               </div>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                <span className="text-xs sm:text-base">
-                  {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                <span>{trip.travelers} travelers</span>
-              </div>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                <span>฿{trip.budget.toLocaleString()} budget</span>
-              </div>
+              <p className="text-sm font-semibold text-foreground">
+                {formatDate(trip.startDate)}
+              </p>
+              <p className="text-xs text-muted-foreground">to {formatDate(trip.endDate)}</p>
             </div>
+            
+            <div className="bg-card rounded-xl border border-border p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <Clock className="w-4 h-4 text-primary" />
+                <span className="text-xs font-medium uppercase tracking-wide">Duration</span>
+              </div>
+              <p className="text-lg font-bold text-foreground">
+                {getDuration(trip.startDate, trip.endDate)}
+              </p>
+            </div>
+            
+            <div className="bg-card rounded-xl border border-border p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <Users className="w-4 h-4 text-primary" />
+                <span className="text-xs font-medium uppercase tracking-wide">Travelers</span>
+              </div>
+              <p className="text-lg font-bold text-foreground">
+                {trip.travelers}
+              </p>
+            </div>
+            
+            <div className="bg-card rounded-xl border border-border p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <DollarSign className="w-4 h-4 text-primary" />
+                <span className="text-xs font-medium uppercase tracking-wide">Budget</span>
+              </div>
+              <p className="text-lg font-bold text-foreground">
+                ฿{trip.budget.toLocaleString()}
+              </p>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="bg-card rounded-xl border border-border p-6 mb-8 shadow-sm">
 
             {user ? (
               // Authenticated user - show all controls
-              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <GenerateItineraryButton
                   tripId={trip.id}
                   destination={trip.destination}
@@ -175,7 +228,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               </div>
             ) : (
               // Public viewer - show CTA to sign up
-              <div className="flex flex-col gap-3 pt-4 border-t">
+              <div className="flex flex-col gap-3">
                 <div className="bg-primary/10 rounded-lg p-4 text-center">
                   <p className="text-sm font-medium mb-3">Love this trip? Create your own with AI!</p>
                   <div className="flex gap-2 justify-center">
@@ -191,8 +244,8 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
             )}
           </div>
 
-          <Tabs defaultValue="itinerary" className="space-y-4 sm:space-y-6">
-            <TabsList className="grid w-full grid-cols-3 h-auto">
+          <Tabs defaultValue="itinerary" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3 h-12 bg-muted/50 p-1 rounded-xl">
               <TabsTrigger value="itinerary" className="text-xs sm:text-sm px-2 sm:px-4 py-2">
                 <span className="hidden sm:inline">Real-Time Itinerary</span>
                 <span className="sm:hidden">Itinerary</span>
