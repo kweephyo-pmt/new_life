@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Heart, Share2, Download, X, MapPin, Loader2, MessageCircle } from "lucide-react"
+import { Search, Heart, Share2, Download, X, MapPin, Loader2, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { setupPostsListener, type Post as FirestorePost } from "@/lib/posts-storage"
 import { useAuth } from "@/contexts/AuthContext"
@@ -72,6 +72,28 @@ export function PhotoGallery() {
       console.error('Error copying link:', error)
       toast.error('Failed to copy link')
     }
+  }
+
+  const goToPrevious = () => {
+    if (!selectedPost) return
+    const currentIndex = filteredPosts.findIndex(p => p.id === selectedPost.id)
+    if (currentIndex > 0) {
+      setSelectedPost(filteredPosts[currentIndex - 1])
+    }
+  }
+
+  const goToNext = () => {
+    if (!selectedPost) return
+    const currentIndex = filteredPosts.findIndex(p => p.id === selectedPost.id)
+    if (currentIndex < filteredPosts.length - 1) {
+      setSelectedPost(filteredPosts[currentIndex + 1])
+    }
+  }
+
+  const getCurrentIndex = () => {
+    if (!selectedPost) return { current: 0, total: 0 }
+    const currentIndex = filteredPosts.findIndex(p => p.id === selectedPost.id)
+    return { current: currentIndex + 1, total: filteredPosts.length }
   }
 
   if (loading) {
@@ -177,6 +199,30 @@ export function PhotoGallery() {
               >
                 <X className="w-5 h-5 md:w-6 md:h-6" />
               </button>
+
+              {/* Navigation Arrows */}
+              {getCurrentIndex().current > 1 && (
+                <button
+                  onClick={goToPrevious}
+                  className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-[100] w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white flex items-center justify-center shadow-lg transition-colors"
+                >
+                  <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" />
+                </button>
+              )}
+              
+              {getCurrentIndex().current < getCurrentIndex().total && (
+                <button
+                  onClick={goToNext}
+                  className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-[100] w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white flex items-center justify-center shadow-lg transition-colors"
+                >
+                  <ChevronRight className="w-6 h-6 md:w-8 md:h-8" />
+                </button>
+              )}
+
+              {/* Photo Counter */}
+              <div className="absolute top-2 left-2 md:top-4 md:left-4 z-[100] px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-sm text-white text-sm font-medium shadow-lg">
+                {getCurrentIndex().current} / {getCurrentIndex().total}
+              </div>
 
               <div className="flex flex-col md:grid md:grid-cols-[2fr_1fr] h-full overflow-y-auto md:overflow-hidden">
                 {/* Image Section */}
