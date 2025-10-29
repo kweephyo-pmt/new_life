@@ -50,9 +50,10 @@ interface Post {
 
 interface TravelFeedProps {
   filterSaved?: boolean
+  highlightPostId?: string
 }
 
-export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
+export function TravelFeed({ filterSaved = false, highlightPostId }: TravelFeedProps = {}) {
   const { user } = useAuth()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
@@ -77,6 +78,23 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
       if (unsubscribe) unsubscribe()
     }
   }, [user, filterSaved])
+
+  // Scroll to highlighted post when posts load
+  useEffect(() => {
+    if (highlightPostId && posts.length > 0) {
+      setTimeout(() => {
+        const element = document.getElementById(`post-${highlightPostId}`)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          // Add highlight animation
+          element.classList.add('ring-2', 'ring-primary', 'ring-offset-2')
+          setTimeout(() => {
+            element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2')
+          }, 3000)
+        }
+      }, 500)
+    }
+  }, [highlightPostId, posts])
 
   // Cleanup effect to ensure body is scrollable and clean up comment listeners
   useEffect(() => {
@@ -178,7 +196,7 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
   const handleShare = async (post: Post) => {
     // Use production URL or fallback to current origin
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://new-life-ai.vercel.app'
-    const shareUrl = `${baseUrl}/community`
+    const shareUrl = `${baseUrl}/community?post=${post.id}`
     
     const shareData = {
       title: `${post.author.name}'s post from ${post.location}`,
@@ -376,7 +394,11 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
   return (
     <div className="space-y-6">
       {posts.map((post) => (
-        <Card key={post.id} className="overflow-hidden border-border/50 shadow-sm hover:shadow-md transition-shadow duration-200">
+        <Card 
+          key={post.id} 
+          id={`post-${post.id}`}
+          className="overflow-hidden border-border/50 shadow-sm hover:shadow-md transition-shadow duration-200"
+        >
           {/* Post Header */}
           <div className="p-4 sm:p-5 flex items-center justify-between border-b border-border/50">
             <div className="flex items-center gap-3">

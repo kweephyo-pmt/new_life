@@ -10,14 +10,16 @@ import { MainNav } from "@/components/main-nav"
 import { Logo } from "@/components/logo"
 import { CreatePostDialog } from "@/components/create-post-dialog"
 import { useAuth } from "@/contexts/AuthContext"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { getSavedPosts, type Post as FirestorePost } from "@/lib/posts-storage"
 
 export default function CommunityPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [refreshKey, setRefreshKey] = useState(0)
+  const highlightPostId = searchParams.get('post')
 
   // Allow public viewing - don't redirect to login
   // useEffect(() => {
@@ -117,7 +119,7 @@ export default function CommunityPage() {
 
             {/* Feed Content */}
             <TabsContent value="feed" className="mt-0 space-y-6">
-              <TravelFeed key={refreshKey} />
+              <TravelFeed key={refreshKey} highlightPostId={highlightPostId || undefined} />
             </TabsContent>
 
             {/* Saved Content */}
