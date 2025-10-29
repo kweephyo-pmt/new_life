@@ -226,45 +226,45 @@ export function PhotoGallery() {
 
               <div className="flex flex-col md:grid md:grid-cols-[2fr_1fr] h-full overflow-y-auto md:overflow-hidden">
                 {/* Image Section */}
-                <div className="relative bg-black flex items-center justify-center overflow-hidden min-h-[50vh] md:min-h-0">
+                <div className="relative bg-black flex items-center justify-center overflow-hidden h-[45vh] md:h-auto">
                   <img
                     src={selectedPost.images[0]}
                     alt={selectedPost.content}
-                    className="w-full h-full object-contain max-h-[60vh] md:max-h-none"
+                    className="w-full h-full object-cover md:object-contain"
                   />
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 md:p-8">
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-3 md:p-8">
                     <div className="flex items-center gap-2 md:gap-3 text-white">
-                      <MapPin className="w-5 h-5 md:w-6 md:h-6" />
-                      <h2 className="text-xl md:text-3xl font-bold drop-shadow-lg">{selectedPost.location}</h2>
+                      <MapPin className="w-4 h-4 md:w-6 md:h-6" />
+                      <h2 className="text-lg md:text-3xl font-bold drop-shadow-lg">{selectedPost.location}</h2>
                     </div>
                   </div>
                 </div>
 
                 {/* Info Section */}
-                <div className="flex flex-col bg-background">
+                <div className="flex flex-col bg-background flex-1">
                   {/* Header */}
-                  <div className="p-4 md:p-8 border-b">
-                    <div className="flex items-center gap-4">
+                  <div className="p-4 md:p-8 border-b flex-shrink-0">
+                    <div className="flex items-center gap-3">
                       {selectedPost.author.photoURL ? (
                         <img 
                           src={selectedPost.author.photoURL} 
                           alt={selectedPost.author.name}
-                          className="w-16 h-16 rounded-full object-cover ring-2 ring-primary/30 shadow-md"
+                          className="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover ring-2 ring-primary/30 shadow-md"
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground flex items-center justify-center ring-2 ring-primary/30 shadow-md">
-                          <span className="text-2xl font-bold">{selectedPost.author.avatar}</span>
+                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground flex items-center justify-center ring-2 ring-primary/30 shadow-md">
+                          <span className="text-lg md:text-2xl font-bold">{selectedPost.author.avatar}</span>
                         </div>
                       )}
                       <div className="flex-1">
-                        <p className="text-lg font-bold text-foreground">{selectedPost.author.name}</p>
-                        <p className="text-sm text-muted-foreground">@{selectedPost.author.username}</p>
+                        <p className="text-base md:text-lg font-bold text-foreground">{selectedPost.author.name}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">@{selectedPost.author.username}</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Content */}
-                  <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6">
+                  <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-3 md:space-y-6">
                     <div>
                       <p className="text-sm md:text-base text-foreground leading-relaxed">
                         {selectedPost.content}
