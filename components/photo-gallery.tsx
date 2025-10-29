@@ -4,8 +4,8 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Heart, Share2, Download, X, MapPin, Loader2 } from "lucide-react"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Search, Heart, Share2, Download, X, MapPin, Loader2, MessageCircle } from "lucide-react"
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { setupPostsListener, type Post as FirestorePost } from "@/lib/posts-storage"
 import { useAuth } from "@/contexts/AuthContext"
 import { Timestamp } from "firebase/firestore"
@@ -158,74 +158,134 @@ export function PhotoGallery() {
 
       {/* Photo Detail Dialog */}
       <Dialog open={!!selectedPost} onOpenChange={() => setSelectedPost(null)}>
-        <DialogContent className="max-w-4xl p-0">
+        <DialogContent 
+          className="!w-[100vw] md:!w-[95vw] !h-[100vh] md:!h-[95vh] !max-w-[100vw] md:!max-w-[95vw] p-0 overflow-hidden [&>button[type='button']]:hidden"
+        >
           {selectedPost && (
-            <div className="grid md:grid-cols-2">
-              <div className="relative h-[500px] bg-muted">
-                <img
-                  src={selectedPost.images[0]}
-                  alt={selectedPost.content}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+            <>
+              <DialogTitle className="sr-only">
+                {selectedPost.location} - Photo by {selectedPost.author.name}
+              </DialogTitle>
+              <DialogDescription className="sr-only">
+                {selectedPost.content}
+              </DialogDescription>
+              
+              {/* Custom Close Button - positioned to cover default one */}
+              <button
+                onClick={() => setSelectedPost(null)}
+                className="absolute top-2 right-2 md:top-4 md:right-4 z-[100] w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white flex items-center justify-center shadow-lg transition-colors"
+              >
+                <X className="w-5 h-5 md:w-6 md:h-6" />
+              </button>
 
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <MapPin className="w-5 h-5 text-primary" />
-                      <h2 className="text-2xl font-bold text-foreground">{selectedPost.location}</h2>
+              <div className="flex flex-col md:grid md:grid-cols-[2fr_1fr] h-full overflow-y-auto md:overflow-hidden">
+                {/* Image Section */}
+                <div className="relative bg-black flex items-center justify-center overflow-hidden min-h-[50vh] md:min-h-0">
+                  <img
+                    src={selectedPost.images[0]}
+                    alt={selectedPost.content}
+                    className="w-full h-full object-contain max-h-[60vh] md:max-h-none"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 md:p-8">
+                    <div className="flex items-center gap-2 md:gap-3 text-white">
+                      <MapPin className="w-5 h-5 md:w-6 md:h-6" />
+                      <h2 className="text-xl md:text-3xl font-bold drop-shadow-lg">{selectedPost.location}</h2>
                     </div>
-                    <p className="text-muted-foreground">{selectedPost.content}</p>
-                  </div>
-                  <Button variant="ghost" size="icon" onClick={() => setSelectedPost(null)}>
-                    <X className="w-5 h-5" />
-                  </Button>
-                </div>
-
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground flex items-center justify-center">
-                    <span className="text-sm font-semibold">{selectedPost.author.avatar}</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{selectedPost.author.name}</p>
-                    <p className="text-xs text-muted-foreground">@{selectedPost.author.username}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="flex items-center gap-1">
-                    <Heart className="w-5 h-5 text-muted-foreground" />
-                    <span className="font-semibold text-foreground">{selectedPost.likes.toLocaleString()}</span>
-                    <span className="text-sm text-muted-foreground ml-1">likes</span>
+                {/* Info Section */}
+                <div className="flex flex-col bg-background">
+                  {/* Header */}
+                  <div className="p-4 md:p-8 border-b">
+                    <div className="flex items-center gap-4">
+                      {selectedPost.author.photoURL ? (
+                        <img 
+                          src={selectedPost.author.photoURL} 
+                          alt={selectedPost.author.name}
+                          className="w-16 h-16 rounded-full object-cover ring-2 ring-primary/30 shadow-md"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground flex items-center justify-center ring-2 ring-primary/30 shadow-md">
+                          <span className="text-2xl font-bold">{selectedPost.author.avatar}</span>
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <p className="text-lg font-bold text-foreground">{selectedPost.author.name}</p>
+                        <p className="text-sm text-muted-foreground">@{selectedPost.author.username}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="font-semibold text-foreground">{selectedPost.comments}</span>
-                    <span className="text-sm text-muted-foreground ml-1">comments</span>
-                  </div>
-                </div>
 
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => handleShare(selectedPost)}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => {
-                      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://new-life-ai.vercel.app'
-                      window.open(`${baseUrl}/community?post=${selectedPost.id}`, '_blank')
-                    }}
-                  >
-                    View Post
-                  </Button>
+                  {/* Content */}
+                  <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6">
+                    <div>
+                      <p className="text-sm md:text-base text-foreground leading-relaxed">
+                        {selectedPost.content}
+                      </p>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="flex items-center gap-4 md:gap-8 py-4 md:py-6 border-y">
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                          <Heart className="w-5 h-5 text-red-500 fill-red-500" />
+                        </div>
+                        <div>
+                          <p className="text-xl font-bold text-foreground">{selectedPost.likes.toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground">likes</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <MessageCircle className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-xl font-bold text-foreground">{selectedPost.comments}</p>
+                          <p className="text-xs text-muted-foreground">comments</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Timestamp */}
+                    <div className="text-sm text-muted-foreground">
+                      Posted on {selectedPost.createdAt?.toDate().toLocaleDateString('en-US', { 
+                        month: 'long', 
+                        day: 'numeric', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="p-4 md:p-8 border-t bg-muted/20">
+                    <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
+                      <Button
+                        onClick={() => handleShare(selectedPost)}
+                        variant="outline"
+                        size="lg"
+                        className="flex-1"
+                      >
+                        <Share2 className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                        Share
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://new-life-ai.vercel.app'
+                          window.open(`${baseUrl}/community?post=${selectedPost.id}`, '_blank')
+                        }}
+                        size="lg"
+                        className="flex-1"
+                      >
+                        View Post
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </>
           )}
         </DialogContent>
       </Dialog>
