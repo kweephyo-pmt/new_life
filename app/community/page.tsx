@@ -19,11 +19,12 @@ export default function CommunityPage() {
   const router = useRouter()
   const [refreshKey, setRefreshKey] = useState(0)
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login')
-    }
-  }, [user, loading, router])
+  // Allow public viewing - don't redirect to login
+  // useEffect(() => {
+  //   if (!loading && !user) {
+  //     router.push('/login')
+  //   }
+  // }, [user, loading, router])
 
   if (loading) {
     return (
@@ -31,10 +32,6 @@ export default function CommunityPage() {
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     )
-  }
-
-  if (!user) {
-    return null
   }
 
   return (
@@ -46,7 +43,18 @@ export default function CommunityPage() {
             <Logo />
             <span className="text-2xl font-bold text-foreground">New Life</span>
           </Link>
-          <MainNav />
+          {user ? (
+            <MainNav />
+          ) : (
+            <div className="flex gap-2">
+              <Link href="/login">
+                <Button variant="ghost">Sign In</Button>
+              </Link>
+              <Link href="/signup">
+                <Button>Get Started</Button>
+              </Link>
+            </div>
+          )}
         </div>
       </header>
 
@@ -65,7 +73,18 @@ export default function CommunityPage() {
             <p className="text-base sm:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
               Share your adventures, discover hidden gems, and connect with fellow travelers from around the world
             </p>
-            <CreatePostDialog onPostCreated={() => setRefreshKey(prev => prev + 1)} />
+            {user ? (
+              <CreatePostDialog onPostCreated={() => setRefreshKey(prev => prev + 1)} />
+            ) : (
+              <div className="flex gap-3 justify-center">
+                <Link href="/signup">
+                  <Button size="lg">Join Community</Button>
+                </Link>
+                <Link href="/login">
+                  <Button size="lg" variant="outline">Sign In</Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -75,24 +94,26 @@ export default function CommunityPage() {
         <div className="max-w-4xl mx-auto">
           <Tabs defaultValue="feed" className="space-y-8">
             {/* Tabs Navigation */}
-            <div className="flex justify-center">
-              <TabsList className="inline-flex h-12 items-center justify-center rounded-xl bg-muted p-1 text-muted-foreground shadow-sm">
-                <TabsTrigger 
-                  value="feed" 
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-                >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Feed
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="saved"
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-                >
-                  <Bookmark className="w-4 h-4 mr-2" />
-                  Saved
-                </TabsTrigger>
-              </TabsList>
-            </div>
+            {user && (
+              <div className="flex justify-center">
+                <TabsList className="inline-flex h-12 items-center justify-center rounded-xl bg-muted p-1 text-muted-foreground shadow-sm">
+                  <TabsTrigger 
+                    value="feed" 
+                    className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Feed
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="saved"
+                    className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                  >
+                    <Bookmark className="w-4 h-4 mr-2" />
+                    Saved
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+            )}
 
             {/* Feed Content */}
             <TabsContent value="feed" className="mt-0 space-y-6">

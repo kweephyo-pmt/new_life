@@ -62,8 +62,8 @@ service cloud.firestore {
     
     // Posts collection rules (Community)
     match /posts/{postId} {
-      // Allow all authenticated users to read posts
-      allow read: if request.auth != null;
+      // Allow anyone to read posts (for public community page)
+      allow read: if true;
       
       // Allow users to create posts with their own userId
       allow create: if request.auth != null && 
@@ -82,8 +82,8 @@ service cloud.firestore {
     
     // Comments collection rules
     match /comments/{commentId} {
-      // Allow all authenticated users to read comments
-      allow read: if request.auth != null;
+      // Allow anyone to read comments (for public community page)
+      allow read: if true;
       
       // Allow users to create comments with their own userId
       allow create: if request.auth != null && 

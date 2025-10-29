@@ -136,24 +136,73 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
   }
 
   const handleToggleSave = async (postId: string) => {
-    if (!user) return
+    if (!user) {
+      toast.error('Please sign in to save posts')
+      return
+    }
+
+    const post = posts.find(p => p.id === postId)
+    if (!post) return
+
+    const isSaved = post.savedBy?.includes(user.uid)
     
-    // Optimistically update UI
-    setPosts(prevPosts => prevPosts.map(post => {
-      if (post.id === postId) {
-        const isSaved = post.savedBy.includes(user.uid)
-        return {
-          ...post,
-          savedBy: isSaved 
-            ? post.savedBy.filter(id => id !== user.uid)
-            : [...post.savedBy, user.uid]
-        }
+    // Optimistic update
+    setPosts(prevPosts => prevPosts.map(p => 
+      p.id === postId 
+        ? { 
+            ...p, 
+            savedBy: isSaved 
+              ? p.savedBy.filter(id => id !== user.uid)
+              : [...(p.savedBy || []), user.uid]
+          }
+        : p
+    ))
+
+    const success = await toggleSave(postId, user.uid)
+    if (!success) {
+      // Revert on failure
+      setPosts(prevPosts => prevPosts.map(p => 
+        p.id === postId 
+          ? { 
+              ...p, 
+              savedBy: isSaved 
+                ? [...(p.savedBy || []), user.uid]
+                : p.savedBy.filter(id => id !== user.uid)
+            }
+          : p
+      ))
+      toast.error('Failed to save post')
+    }
+  }
+
+  const handleShare = async (post: Post) => {
+    // Use production URL or fallback to current origin
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://new-life-ai.vercel.app'
+    const shareUrl = `${baseUrl}/community`
+    
+    const shareData = {
+      title: `${post.author.name}'s post from ${post.location}`,
+      text: post.content,
+      url: shareUrl
+    }
+
+    try {
+      // Check if Web Share API is supported
+      if (navigator.share) {
+        await navigator.share(shareData)
+        toast.success('Shared successfully!')
+      } else {
+        // Fallback: Copy link to clipboard
+        await navigator.clipboard.writeText(shareUrl)
+        toast.success('Link copied to clipboard!')
       }
-      return post
-    }))
-    
-    // Update in background
-    await toggleSave(postId, user.uid)
+    } catch (error) {
+      // User cancelled or error occurred
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error('Error sharing:', error)
+        toast.error('Failed to share')
+      }
+    }
   }
 
   const handleEditClick = (post: Post) => {
@@ -421,7 +470,10 @@ export function TravelFeed({ filterSaved = false }: TravelFeedProps = {}) {
                   <MessageCircle className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
                   <span className="text-sm font-semibold text-foreground">{post.comments}</span>
                 </button>
-                <button className="group hover:scale-110 transition-transform">
+                <button 
+                  onClick={() => handleShare(post)}
+                  className="group hover:scale-110 transition-transform"
+                >
                   <Share2 className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
                 </button>
               </div>
