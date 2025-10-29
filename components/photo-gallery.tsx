@@ -226,7 +226,7 @@ export function PhotoGallery() {
 
               <div className="flex flex-col md:grid md:grid-cols-[2fr_1fr] h-full overflow-y-auto md:overflow-hidden">
                 {/* Image Section */}
-                <div className="relative bg-black flex items-center justify-center overflow-hidden h-[45vh] md:h-auto">
+                <div className="relative bg-black flex items-center justify-center overflow-hidden h-[35vh] md:h-auto">
                   <img
                     src={selectedPost.images[0]}
                     alt={selectedPost.content}
