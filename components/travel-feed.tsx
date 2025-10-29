@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { Heart, MessageCircle, Share2, Bookmark, MapPin, MoreVertical, Loader2, Trash2, Pencil, Send } from "lucide-react"
+import { Heart, MessageCircle, Share2, Bookmark, MapPin, MoreVertical, Loader2, Trash2, Pencil, Send, Link2, Copy } from "lucide-react"
 import { getAllPosts, getSavedPosts, toggleLike, toggleSave, deletePost, addComment, getComments, deleteComment, setupPostsListener, setupCommentsListener, type Post as FirestorePost, type Comment } from "@/lib/posts-storage"
 import { EditPostDialog } from "@/components/edit-post-dialog"
 import { useAuth } from "@/contexts/AuthContext"
@@ -193,10 +193,25 @@ export function TravelFeed({ filterSaved = false, highlightPostId }: TravelFeedP
     }
   }
 
-  const handleShare = async (post: Post) => {
-    // Use production URL or fallback to current origin
+  const getShareUrl = (postId: string) => {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://new-life-ai.vercel.app'
-    const shareUrl = `${baseUrl}/community?post=${post.id}`
+    return `${baseUrl}/community?post=${postId}`
+  }
+
+  const handleCopyLink = async (post: Post) => {
+    const shareUrl = getShareUrl(post.id)
+    
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      toast.success('Link copied to clipboard!')
+    } catch (error) {
+      console.error('Error copying link:', error)
+      toast.error('Failed to copy link')
+    }
+  }
+
+  const handleShare = async (post: Post) => {
+    const shareUrl = getShareUrl(post.id)
     
     const shareData = {
       title: `${post.author.name}'s post from ${post.location}`,
@@ -492,12 +507,23 @@ export function TravelFeed({ filterSaved = false, highlightPostId }: TravelFeedP
                   <MessageCircle className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
                   <span className="text-sm font-semibold text-foreground">{post.comments}</span>
                 </button>
-                <button 
-                  onClick={() => handleShare(post)}
-                  className="group hover:scale-110 transition-transform"
-                >
-                  <Share2 className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="group hover:scale-110 transition-transform">
+                      <Share2 className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => handleShare(post)}>
+                      <Share2 className="w-4 h-4 mr-2" />
+                      Share
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleCopyLink(post)}>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy Link
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <button 
                 onClick={() => handleToggleSave(post.id)}
