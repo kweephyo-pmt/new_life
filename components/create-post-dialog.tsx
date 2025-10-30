@@ -165,8 +165,8 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
             </Label>
             
             {imageUrl ? (
-              <div className="relative">
-                <div className="relative h-48 rounded-lg overflow-hidden border">
+              <div className="relative w-full">
+                <div className="relative w-full aspect-video rounded-lg overflow-hidden border-2 border-border bg-muted">
                   <Image
                     src={imageUrl}
                     alt="Preview"
@@ -178,7 +178,7 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
                   type="button"
                   variant="destructive"
                   size="icon"
-                  className="absolute top-2 right-2"
+                  className="absolute top-2 right-2 h-8 w-8 rounded-full shadow-lg hover:scale-110 transition-transform"
                   onClick={() => {
                     setImageUrl("")
                     if (fileInputRef.current) {

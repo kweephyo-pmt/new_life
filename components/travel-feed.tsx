@@ -513,7 +513,7 @@ export function TravelFeed({ filterSaved = false, highlightPostId }: TravelFeedP
                       <Share2 className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuContent align="start" side="right" sideOffset={8} alignOffset={-8} className="w-48">
                     <DropdownMenuItem onClick={() => handleShare(post)}>
                       <Share2 className="w-4 h-4 mr-2" />
                       Share
