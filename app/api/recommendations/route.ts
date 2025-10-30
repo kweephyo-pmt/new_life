@@ -37,7 +37,9 @@ export async function POST(req: Request) {
     const { object } = await generateObject({
       model: google("gemini-2.0-flash-exp"),
       schema: recommendationSchema,
-      prompt: `You are an expert travel advisor. Based on the following travel request, provide 3-5 personalized destination recommendations with detailed information: "${prompt}"
+      prompt: `You are an expert travel advisor. Based on the following travel request, provide EXACTLY 3-5 personalized destination recommendations with detailed information: "${prompt}"
+      
+      CRITICAL: You MUST provide at least 3 different destinations. If the user mentions a specific place, include that place plus 2-4 similar alternatives.
       
       IMPORTANT: All budget amounts MUST be in Thai Baht (THB/฿). Convert any mentioned currencies to THB.
       - Use format: "฿50,000-฿80,000" or "฿2,000 per day"
@@ -51,7 +53,7 @@ export async function POST(req: Request) {
       - Activities and experiences
       - Practical considerations
       
-      Make recommendations diverse and well-suited to the request.`,
+      Make recommendations diverse and well-suited to the request. Include the main destination requested plus similar alternatives.`,
     })
 
     console.log('Generated recommendations:', object)
