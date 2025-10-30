@@ -26,12 +26,9 @@ export async function GET(request: NextRequest) {
 
     // Step 1: Search for famous landmarks/tourist attractions with better prompts
     const searchQueries = [
-      `${destination} archaeological site`,
-      `${destination} ancient temples`,
-      `${destination} historical landmark`,
       `${destination} beach`,
       `${destination} scenic view`,
-      `${destination} iconic landmark`,
+      `${destination} iconic landmark skyline`,
       `${destination} famous tourist attraction`,
       `${destination} most photographed place`,
       `${destination} main attraction`,
@@ -43,8 +40,8 @@ export async function GET(request: NextRequest) {
     
     // Try each search query and score results
     for (const query of searchQueries) {
-      // Don't restrict to tourist_attraction type for certain queries to get better results
-      const typeParam = query.includes('beach') || query.includes('scenic') || query.includes('archaeological') || query.includes('ancient') || query.includes('historical') ? '' : '&type=tourist_attraction'
+      // Don't restrict to tourist_attraction type for beach queries to get better results
+      const typeParam = query.includes('beach') || query.includes('scenic') ? '' : '&type=tourist_attraction'
       const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}${typeParam}&key=${apiKey}`
       const searchResponse = await fetch(searchUrl)
       const searchData = await searchResponse.json()
@@ -74,12 +71,6 @@ export async function GET(request: NextRequest) {
           // Boost score for natural features like beaches
           if (p.types?.includes('natural_feature') || p.name?.toLowerCase().includes('beach')) {
             score *= 1.6
-          }
-          
-          // Boost score for archaeological/historical sites
-          const name = p.name?.toLowerCase() || ''
-          if (name.includes('archaeological') || name.includes('ancient') || name.includes('temple') || name.includes('pagoda') || name.includes('ruins')) {
-            score *= 1.8
           }
           
           // Boost if name contains destination (more likely to be THE landmark)
