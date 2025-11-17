@@ -1,129 +1,121 @@
-import { NextRequest } from "next/server";
+import { NextRequest } from 'next/server'
 
-const photoCache = new Map<string, string>();
+// Cache to avoid repeated API calls for same destinations
+const photoCache = new Map<string, string>()
 
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const destination = searchParams.get("destination") || "";
-
+  const searchParams = request.nextUrl.searchParams
+  const destination = searchParams.get('destination') || ''
+  
   if (!destination) {
-    return Response.json({ error: "Destination is required" }, { status: 400 });
+    return Response.json({ error: 'Destination is required' }, { status: 400 })
   }
 
-  const cacheKey = destination.toLowerCase();
+  // Check cache first
+  const cacheKey = destination.toLowerCase()
   if (photoCache.has(cacheKey)) {
-    return Response.json({ imageUrl: photoCache.get(cacheKey) });
+    return Response.json({ imageUrl: photoCache.get(cacheKey) })
   }
 
   try {
-    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY
+    
     if (!apiKey) {
-      return Response.json(
-        { error: "GOOGLE_PLACES_API_KEY not configured" },
-        { status: 500 }
-      );
+      return Response.json({ error: 'GOOGLE_PLACES_API_KEY not configured' }, { status: 500 })
     }
 
-    // -----------------------------------------------------
-    // 1. AUTOCOMPLETE — Detect the correct place/country
-    // -----------------------------------------------------
-    const autoUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
-      destination
-    )}&types=geocode&key=${apiKey}`;
-
-    const autoRes = await fetch(autoUrl);
-    const autoData = await autoRes.json();
-
-    let placeId: string | null = null;
-
-    if (autoData.status === "OK" && autoData.predictions?.length > 0) {
-      placeId = autoData.predictions[0].place_id;
-    }
-
-    let photoUrl: string | null = null;
-
-    // -----------------------------------------------------
-    // 2. PLACE DETAILS → Get official photos (BEST QUALITY)
-    // -----------------------------------------------------
-    if (placeId) {
-      const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${apiKey}`;
-      const detailsRes = await fetch(detailsUrl);
-      const detailsData = await detailsRes.json();
-
-      if (detailsData.status === "OK") {
-        const placeDetails = detailsData.result;
-
-        if (placeDetails.photos && placeDetails.photos.length > 0) {
-          const photoRef = placeDetails.photos[0].photo_reference;
-          photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=1200&photoreference=${photoRef}&key=${apiKey}`;
-        }
-      }
-    }
-
-   // -----------------------------------------------------
-// 3. FALLBACK: TEXT SEARCH (Focus on Natural/Beach Scenery)
-// -----------------------------------------------------
-if (!photoUrl) {
-    // 💡 FIX: Prioritize queries related to the context: 'beach trip' and the destination's primary features (cliffs, caves).
-    const queries = [
-        `${destination} beach`,
-        `${destination} viewpoint`, // Still useful for scenic views
-        `${destination} sunset`,
-        `${destination} cliffs`, // Specific to Railay/Krabi
-        `${destination} cave`, // Specific to Railay/Krabi
-        destination, // General fallback
-    ];
-
-    let bestPlace = null;
-    let bestScore = 0;
-
-      for (const q of queries) {
-        const textUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
-          q
-        )}&key=${apiKey}`;
-
-        const res = await fetch(textUrl);
-        const data = await res.json();
-
-        if (data.status !== "OK") continue;
-
-        for (const p of data.results) {
-          if (!p.photos) continue;
-
-          const rating = p.rating || 0;
-          const reviews = p.user_ratings_total || 0;
-          const score = rating * Math.log10(reviews + 10);
-
-          if (score > bestScore) {
-            bestScore = score;
-            bestPlace = p;
+    // Step 1: Search for famous landmarks/tourist attractions with better prompts
+    const searchQueries = [
+      `${destination} archaeological site`,
+      `${destination} ancient temples`,
+      `${destination} historical landmark`,
+      `${destination} beach`,
+      `${destination} scenic view`,
+      `${destination} iconic landmark`,
+      `${destination} famous tourist attraction`,
+      `${destination} most photographed place`,
+      `${destination} main attraction`,
+    ]
+    
+    let place = null
+    let bestPlace = null
+    let highestScore = 0
+    
+    // Try each search query and score results
+    for (const query of searchQueries) {
+      // Don't restrict to tourist_attraction type for certain queries to get better results
+      const typeParam = query.includes('beach') || query.includes('scenic') || query.includes('archaeological') || query.includes('ancient') || query.includes('historical') ? '' : '&type=tourist_attraction'
+      const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}${typeParam}&key=${apiKey}`
+      const searchResponse = await fetch(searchUrl)
+      const searchData = await searchResponse.json()
+      
+      if (searchData.status === 'OK' && searchData.results && searchData.results.length > 0) {
+        // Score each place based on popularity and quality
+        for (const p of searchData.results) {
+          if (!p.photos || p.photos.length === 0) continue
+          
+          // Calculate score with better weighting
+          const rating = p.rating || 0
+          const reviews = p.user_ratings_total || 0
+          const photoCount = p.photos.length
+          
+          // Prioritize places with:
+          // - High ratings (4.0+)
+          // - Many reviews (indicates popularity)
+          // - Multiple photos (indicates photo-worthy)
+          // - Bonus for "landmark" or "monument" in types
+          let score = rating * Math.log10(reviews + 10) * Math.min(photoCount, 10)
+          
+          // Boost score if it's a landmark or monument
+          if (p.types?.includes('landmark') || p.types?.includes('monument') || p.types?.includes('point_of_interest')) {
+            score *= 1.5
+          }
+          
+          // Boost score for natural features like beaches
+          if (p.types?.includes('natural_feature') || p.name?.toLowerCase().includes('beach')) {
+            score *= 1.6
+          }
+          
+          // Boost score for archaeological/historical sites
+          const name = p.name?.toLowerCase() || ''
+          if (name.includes('archaeological') || name.includes('ancient') || name.includes('temple') || name.includes('pagoda') || name.includes('ruins')) {
+            score *= 1.8
+          }
+          
+          // Boost if name contains destination (more likely to be THE landmark)
+          if (p.name?.toLowerCase().includes(destination.toLowerCase())) {
+            score *= 1.3
+          }
+          
+          if (score > highestScore) {
+            highestScore = score
+            bestPlace = p
           }
         }
       }
+    }
+    
+    place = bestPlace
 
-      if (bestPlace?.photos?.length > 0) {
-        const ref = bestPlace.photos[0].photo_reference;
-        photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=1200&photoreference=${ref}&key=${apiKey}`;
-      }
+    if (!place) {
+      return Response.json({ error: `No landmark found for ${destination}` }, { status: 404 })
+    }
+    
+    // Step 2: Get the best photo (first photo is usually the main/best one)
+    if (place.photos && place.photos.length > 0) {
+      const photoReference = place.photos[0].photo_reference
+      // Construct Google Places Photo URL with higher quality
+      const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=1200&photoreference=${photoReference}&key=${apiKey}`
+      
+      photoCache.set(cacheKey, photoUrl)
+      return Response.json({ imageUrl: photoUrl })
     }
 
-    // Still no result
-    if (!photoUrl) {
-      return Response.json(
-        { error: `No photos available for ${destination}` },
-        { status: 404 }
-      );
-    }
+    // No photos available
+    return Response.json({ error: 'No photos available for this destination' }, { status: 404 })
 
-    // Save to cache
-    photoCache.set(cacheKey, photoUrl);
-
-    return Response.json({ imageUrl: photoUrl });
-  } catch (err) {
-    console.error("Error fetching destination photo:", err);
-    return Response.json(
-      { error: "Failed to fetch destination photo" },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error('Error fetching destination photo:', error)
+    return Response.json({ error: 'Failed to fetch destination photo' }, { status: 500 })
   }
 }
