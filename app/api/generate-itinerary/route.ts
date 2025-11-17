@@ -4,7 +4,7 @@ import { z } from "zod"
 
 // Initialize Google Gemini provider
 const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+  apiKey: process.env.NEXT_PUBLIC_GOOGLE_GENERATIVE_AI_API_KEY,
 })
 
 const itinerarySchema = z.object({
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
 
     const { object } = await generateObject({
-      model: google("gemini-2.5-flash"),
+      model: google("gemini-2.0-flash"),
       schema: itinerarySchema,
       prompt: `Create a detailed day-by-day itinerary for a ${days}-day trip to ${destination}.
       

@@ -3,7 +3,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { z } from "zod"
 
 const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+  apiKey: process.env.NEXT_PUBLIC_GOOGLE_GENERATIVE_AI_API_KEY,
 })
 
 const recommendationSchema = z.object({
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     console.log('Generating recommendations for:', prompt)
 
     const { object } = await generateObject({
-      model: google("gemini-2.0-flash-exp"),
+      model: google("gemini-2.0-flash"),
       schema: recommendationSchema,
       prompt: `You are an expert travel advisor. Based on the following travel request, provide 3-5 personalized destination recommendations with detailed information: "${prompt}"
       
