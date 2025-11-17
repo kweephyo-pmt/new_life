@@ -60,21 +60,22 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // -----------------------------------------------------
-    // 3. FALLBACK: TEXT SEARCH (Landmarks only)
-    // -----------------------------------------------------
-    if (!photoUrl) {
-      const queries = [
-        destination,
-        `${destination} landmark`,
-        `${destination} temple`,
-        `${destination} viewpoint`,
-        `${destination} tourist attraction`,
-        `${destination} historic site`,
-      ];
+   // -----------------------------------------------------
+// 3. FALLBACK: TEXT SEARCH (Focus on Natural/Beach Scenery)
+// -----------------------------------------------------
+if (!photoUrl) {
+    // 💡 FIX: Prioritize queries related to the context: 'beach trip' and the destination's primary features (cliffs, caves).
+    const queries = [
+        `${destination} beach`,
+        `${destination} viewpoint`, // Still useful for scenic views
+        `${destination} sunset`,
+        `${destination} cliffs`, // Specific to Railay/Krabi
+        `${destination} cave`, // Specific to Railay/Krabi
+        destination, // General fallback
+    ];
 
-      let bestPlace = null;
-      let bestScore = 0;
+    let bestPlace = null;
+    let bestScore = 0;
 
       for (const q of queries) {
         const textUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
