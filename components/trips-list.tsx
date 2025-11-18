@@ -31,16 +31,7 @@ export function TripsList() {
       if (tripsNeedingPhotos.length > 0) {
         const imagePromises = tripsNeedingPhotos.map(async (trip) => {
           try {
-            const [primaryDestination, ...locationParts] = trip.destination.split(',')
-            const locationParam = locationParts.join(',').trim()
-            const params = new URLSearchParams({
-              destination: primaryDestination.trim() || trip.destination,
-            })
-            if (locationParam) {
-              params.set('location', locationParam)
-            }
-
-            const response = await fetch(`/api/destination-photo?${params.toString()}`)
+            const response = await fetch(`/api/destination-photo?destination=${encodeURIComponent(trip.destination)}`)
             const data = await response.json()
             
             // If we got a valid imageUrl, save it to Firestore
@@ -90,14 +81,7 @@ export function TripsList() {
   }
 
   const getDuration = (start: string, end: string) => {
-    const startDate = new Date(start)
-    const endDate = new Date(end)
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      return "—"
-    }
-
-    const diffMs = endDate.getTime() - startDate.getTime()
-    const days = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)) + 1)
+    const days = Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24))
     return `${days} days`
   }
 
