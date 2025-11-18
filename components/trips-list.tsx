@@ -31,7 +31,16 @@ export function TripsList() {
       if (tripsNeedingPhotos.length > 0) {
         const imagePromises = tripsNeedingPhotos.map(async (trip) => {
           try {
-            const response = await fetch(`/api/destination-photo?destination=${encodeURIComponent(trip.destination)}`)
+            const [primaryDestination, ...locationParts] = trip.destination.split(',')
+            const locationParam = locationParts.join(',').trim()
+            const params = new URLSearchParams({
+              destination: primaryDestination.trim() || trip.destination,
+            })
+            if (locationParam) {
+              params.set('location', locationParam)
+            }
+
+            const response = await fetch(`/api/destination-photo?${params.toString()}`)
             const data = await response.json()
             
             // If we got a valid imageUrl, save it to Firestore

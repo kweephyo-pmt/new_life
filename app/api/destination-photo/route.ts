@@ -5,14 +5,15 @@ const photoCache = new Map<string, string>()
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
-  const destination = searchParams.get('destination') || ''
-  
+  const destination = searchParams.get('destination')?.trim() || ''
+  const locationHint = searchParams.get('location')?.trim() || ''
+
   if (!destination) {
     return Response.json({ error: 'Destination is required' }, { status: 400 })
   }
 
   // Check cache first
-  const cacheKey = destination.toLowerCase()
+  const cacheKey = `${destination}|${locationHint}`.toLowerCase()
   if (photoCache.has(cacheKey)) {
     return Response.json({ imageUrl: photoCache.get(cacheKey) })
   }
@@ -25,14 +26,27 @@ export async function GET(request: NextRequest) {
     }
 
     // Step 1: Search for famous landmarks/tourist attractions with better prompts
+    const fullLocationQuery = locationHint ? `${destination} ${locationHint}` : destination
+
     const searchQueries = [
-      `${destination} beach`,
-      `${destination} scenic view`,
-      `${destination} iconic landmark skyline`,
+      `${fullLocationQuery} iconic landmark`,
+      `${fullLocationQuery} skyline`,
+      `${fullLocationQuery} famous tourist attraction`,
+      `${fullLocationQuery} scenic view`,
+      `${fullLocationQuery} beach`,
+      `${fullLocationQuery} historic center`,
+      `${fullLocationQuery} most photographed place`,
+      `${fullLocationQuery} main attraction`,
+      // Fallbacks without the location hint in case nothing matches
+      `${destination} iconic landmark`,
+      `${destination} skyline`,
       `${destination} famous tourist attraction`,
+      `${destination} scenic view`,
+      `${destination} beach`,
+      `${destination} historic center`,
       `${destination} most photographed place`,
       `${destination} main attraction`,
-    ]
+    ].filter((query, index, self) => query.trim() && self.indexOf(query) === index)
     
     let place = null
     let bestPlace = null

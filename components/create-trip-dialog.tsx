@@ -95,7 +95,16 @@ export function CreateTripDialog({ children, initialData }: CreateTripDialogProp
       if (newTrip.id) {
         console.log('Fetching photo for new trip:', newTrip.id, formData.destination)
         try {
-          const photoResponse = await fetch(`/api/destination-photo?destination=${encodeURIComponent(formData.destination)}`)
+          const [primaryDestination, ...locationParts] = formData.destination.split(',')
+          const locationParam = locationParts.join(',').trim()
+          const params = new URLSearchParams({
+            destination: primaryDestination.trim() || formData.destination,
+          })
+          if (locationParam) {
+            params.set('location', locationParam)
+          }
+
+          const photoResponse = await fetch(`/api/destination-photo?${params.toString()}`)
           const photoData = await photoResponse.json()
           console.log('Photo response:', photoData)
           

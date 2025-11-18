@@ -70,7 +70,11 @@ export function AiRecommendations() {
         const photoPromises = data.recommendations.destinations.map(async (dest: any) => {
           try {
             console.log(`Fetching photo for: ${dest.name}`)
-            const photoResponse = await fetch(`/api/destination-photo?destination=${encodeURIComponent(dest.name)}`)
+            const params = new URLSearchParams({
+              destination: dest.name,
+              ...(dest.location ? { location: dest.location } : {}),
+            })
+            const photoResponse = await fetch(`/api/destination-photo?${params.toString()}`)
             const photoData = await photoResponse.json()
             console.log(`Photo data for ${dest.name}:`, photoData)
             
