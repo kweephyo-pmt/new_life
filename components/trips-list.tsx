@@ -90,7 +90,14 @@ export function TripsList() {
   }
 
   const getDuration = (start: string, end: string) => {
-    const days = Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24))
+    const startDate = new Date(start)
+    const endDate = new Date(end)
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return "—"
+    }
+
+    const diffMs = endDate.getTime() - startDate.getTime()
+    const days = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)) + 1)
     return `${days} days`
   }
 
