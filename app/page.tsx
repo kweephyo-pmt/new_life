@@ -71,9 +71,6 @@ export default function HomePage() {
             <Button size="lg" className="text-lg px-8" onClick={handleGetStarted}>
               {user ? 'Go to My Trips' : 'Start Exploring'}
             </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 bg-transparent">
-              Watch Demo
-            </Button>
           </div>
         </div>
       </section>
